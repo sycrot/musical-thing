@@ -1,6 +1,8 @@
+import Sidebar from '@/components/sidebar'
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Providers from '@/services/redux/provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,7 +18,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Providers>
+          <div className="p-1 bg-gray-10 w-full h-screen max-w-desktop mr-auto ml-auto text-gray-60">
+            <div className="w-2/6 h-3/4">
+              <Sidebar />
+            </div>
+
+            {children}
+          </div>
+        </Providers>
+
+      </body>
     </html>
   )
 }
