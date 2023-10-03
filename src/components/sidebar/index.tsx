@@ -14,11 +14,20 @@ import SidebarPlaylistItem from "../sidebarPlaylistIem";
 import AddNewPlaylist from "../addNewPlaylist";
 import MenuDropdown, { TMenu } from "../menuDropdown";
 import { useSelector } from "react-redux";
+import { getUserPlaylists } from "@/services/spotify";
 
 export default function Sidebar() {
   const [openNewPlaylist, setOpenNewPlaylist] = React.useState(false)
   const [libraryOrder, setLibraryOrder] = React.useState('Recent')
+  const [playlists, setPlaylists] = React.useState<[]>([])
   const { user } = useSelector((r: any) => r.userReducer)
+
+  React.useEffect(() => {
+    const handlePlaylists = async () => {
+      setPlaylists(await getUserPlaylists())
+    }
+    handlePlaylists()
+  }, [])
 
   const menuOrderItems: TMenu[] = [
     {
@@ -79,7 +88,9 @@ export default function Sidebar() {
         </div>
         <div className="rounded-b-xl bg-white w-full h-full flex-auto grow overflow-y-scroll pt-4 scroll-">
           <div className="pl-2 grow h-4/5">
-            <SidebarPlaylistItem title="Workout musics ✨ Mix Player" image="https://cdn.pixabay.com/photo/2017/06/20/22/14/man-2425121_1280.jpg" by="Discover Bytes" />
+            {playlists.map((item: any, key) => (
+              <SidebarPlaylistItem key={key} title={item.name} image={item.images[0]?.url} by="Discover Bytes" />
+            ))}
           </div>
         </div>
       </div>

@@ -6,6 +6,8 @@ import { useDispatch } from "react-redux"
 export default function Home() {
   const CLIENT_ID = process.env.NEXT_SPOTIFY_CLIENT_ID
   const REDIRECT_URI = process.env.NEXT_SPOTIFY_REDIRECT_URI
+  const AUTH_ENDPOINT = process.env.NEXT_SPOTIFY_AUTH_ENDPOINT
+  const RESPONSE_TYPE = process.env.NEXT_SPOTIFY_RESPONSE_TYPE
   const dispatch = useDispatch()
 
   const [token, setToken] = React.useState("");
@@ -34,7 +36,7 @@ export default function Home() {
 
   return (
     <main>
-      <a href={`https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token`}>
+      <a href={`${AUTH_ENDPOINT}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=${RESPONSE_TYPE}`}>
         Login to Spotify
       </a>
 
