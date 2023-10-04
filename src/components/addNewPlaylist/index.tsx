@@ -4,6 +4,7 @@ import Image from "next/image";
 import XIcon from "@/assets/images/icons/x-notrounded.svg"
 import { handleCloseAnimate } from "@/utils/main";
 import { Modal } from "@mui/material";
+import ButtonModal from "../buttonModal";
 
 interface Props {
   openNewPlaylist: boolean
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function AddNewPlaylist(props: Props) {
+  const [text, setText] = React.useState('')
   const refCard = React.useRef<any>(null)
 
   const handleBack = () => {
@@ -26,10 +28,10 @@ export default function AddNewPlaylist(props: Props) {
           </button>
           <h3 className="text-24 text-center font-bold">Create new playlist</h3>
         </div>
-        <input type="text" placeholder="Playlist name" className="px-4 py-2 outline-none mt-3 bg-gray-10 rounded-full w-full" />
+        <input type="text" placeholder="Playlist name" className="px-4 py-2 outline-none mt-3 bg-gray-10 rounded-full w-full" value={text} onChange={e => setText(e.target.value)}/>
         <div className="flex mt-6 gap-3 justify-center">
-          <button className="py-1 px-2 w-full max-w-94 text-gray-60 bg-white border border-gray-30 rounded-full hover:brightness-110 transition ease-in-out delay-150">Cancel</button>
-          <button className="py-1 px-2 w-full max-w-94 text-white bg-green-50 rounded-full hover:brightness-110 transition ease-in-out delay-50">Create</button>
+          <ButtonModal text="Cancel" onClick={handleBack}/>
+          <ButtonModal text="Create" color={`bg-green-50 text-white ${text.length <= 0 && 'pointer-events-none'}`}/>
         </div>
       </div>
     </Modal>

@@ -53,7 +53,7 @@ const config: Config = {
       spacing: {
         '6p': '6px',
         '7p': '7px',
-        '10l': '-10px'
+        '10l': '-10px',
       },
       flexBasis: {
         'auto': 'auto'
@@ -79,6 +79,9 @@ const config: Config = {
       },
       boxShadow: {
         'card-15': '1px 1px 6px rgba(0,0,0,.15)'
+      },
+      gridTemplateColumns: {
+        'playlist': '3.5rem auto'
       }
     },
   },
