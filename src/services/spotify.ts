@@ -1,37 +1,52 @@
 'use client'
 import axios from 'axios';
 import { login } from './redux/user/slice';
-import { setPlaylists } from './redux/playlists/slice';
+import { setOrderLibraryUser, setUserPlaylists } from './redux/playlists/slice';
+import { useDispatch, useSelector } from 'react-redux';
+import store from './redux/store';
+import React from 'react';
+import { ShowPopup } from './redux/popup/slice';
 
 const path = 'https://api.spotify.com/v1';
 
 const headers = {
-  'Content-Type' : 'application/json',
-  'Authorization' : `Bearer ${typeof window !== "undefined" ? window?.localStorage.token : ''}`
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${typeof window !== "undefined" ? window?.localStorage.token : ''}`
 }
 
-export async function getUser (dispatch: any) {
+export async function GetUser() {
   if (window.localStorage.token) {
     await axios.get(`${path}/me`, {
       headers
-    }).then(({data}) => {
-      dispatch(login(data))
+    }).then(({ data }) => {
+      store.dispatch(login(data))
     }).catch(err => {
       handleErrors(err)
     })
   }
-  
+
 }
 
-export async function getUserPlaylists (dispatch?: any) {
-  let playlists:any = []
+export async function GetUserPlaylists() {
+  const order = store.getState().playlistsReducer.orderLibraryUser
+
+  let playlists: any = []
 
   if (window.localStorage.token) {
     await axios.get(`${path}/me/playlists?limit=50`, {
       headers
-    }).then(({data}) => {
-      dispatch(setPlaylists(data.items))
-      playlists = data.items
+    }).then(async ({ data }) => {
+      if (order === 'recent') {
+        playlists = data.items
+      }
+
+      if (order === 'alphabetical') {
+        await handleAlphabeticalOrder(data.items).then(data => {
+          playlists = data
+        })
+      }
+
+      store.dispatch(setUserPlaylists(playlists))
     }).catch(err => {
       handleErrors(err)
     })
@@ -40,43 +55,120 @@ export async function getUserPlaylists (dispatch?: any) {
   return playlists
 }
 
-export async function getUserPlaylistLikedMusics () {
-  let playlists:any = []
+export async function getUserPlaylistLikedMusics() {
+  let playlists: any = []
 
   if (window.localStorage.token) {
     await axios.get(`${path}/me/tracks?limit=50`, {
       headers
-    }).then(({data}) => {
+    }).then(({ data }) => {
       playlists = data.items
     }).catch(err => {
       handleErrors(err)
     })
   }
-  
+
 
   return playlists
 }
 
-export async function deleteUserPlaylist (id: string, dispatch: any) {
+export async function DeleteUserPlaylist(id: string) {
   if (window.localStorage.token) {
     await axios.delete(`${path}/playlists/${id}/followers`, {
       headers
     }).then(async () => {
-      await getUserPlaylists(dispatch)
+      await GetUserPlaylists().then(data => {
+        store.dispatch(setUserPlaylists(data))
+        store.dispatch(ShowPopup({
+          text: 'Remove from your library',
+          show: true
+        }))
+      })
     }).catch(err => {
       handleErrors(err)
     })
   }
 }
 
-export const searchUserLibrary = async (text: string, playlists: any,dispatch: any) => {
-  let list:any = playlists
+export const SearchUserLibrary = async (text: string) => {
+  let list: any = await GetUserPlaylists()
 
-  let listResult = list.filter(function(value: any) {
-      return value.name.toLowerCase().indexOf(text.toLowerCase()) > -1
+  let listResult = list.filter(function (value: any) {
+    return value.name.toLowerCase().indexOf(text.toLowerCase()) > -1
   })
 
-  dispatch(setPlaylists(listResult))
+  store.dispatch(setUserPlaylists(listResult))
+}
+
+export async function handleOrderLibrary(order: string) {
+  store.dispatch(setOrderLibraryUser(order))
+
+  await GetUserPlaylists()
+}
+
+export const handleAlphabeticalOrder = async (list: []) => {
+  return list.sort((a: any, b: any) => {
+    let x = a.name.toUpperCase()
+    let y = b.name.toUpperCase()
+    return x == y ? 0 : x > y ? 1 : -1
+  })
+}
+
+async function CustomPlaylistCoverImage(playlist_id: string, photo?: string) {
+  let defaultCover = "/9j/2wCEABoZGSccJz4lJT5CLy8vQkc9Ozs9R0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0cBHCcnMyYzPSYmPUc9Mj1HR0dEREdHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR//dAAQAAf/uAA5BZG9iZQBkwAAAAAH/wAARCAABAAEDACIAAREBAhEB/8QASwABAQAAAAAAAAAAAAAAAAAAAAYBAQAAAAAAAAAAAAAAAAAAAAAQAQAAAAAAAAAAAAAAAAAAAAARAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwAAARECEQA/AJgAH//Z"
+
+  if (window.localStorage.token) {
+    photo ? await axios.put(`${path}/playlists/${playlist_id}/images
+    `, photo ??= defaultCover,
+      {
+        headers: {
+          'Content-Type': 'image/jpeg',
+          'Authorization': `Bearer ${typeof window !== "undefined" ? window?.localStorage.token : ''}`
+        },
+      }).then(async () => {
+        await GetUserPlaylists()
+      }).catch(err => {
+        handleErrors(err)
+      })
+    :
+    await GetUserPlaylists()
+  }
+}
+
+
+export async function CreatePlaylist (user_id: string, name: string, _public: boolean, description: string, photo?: string) {
+  if (window.localStorage.token) {
+    await axios.post(`${path}/users/${user_id}/playlists
+    `, {
+      name,
+      description,
+      public: _public
+    },
+      {
+        headers
+      }).then(async (data: any) => {
+        await CustomPlaylistCoverImage(data.data.id, photo)
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
+}
+
+export async function GetFeaturedPlaylists () {
+  let playlists: any = []
+
+  if (window.localStorage.token) {
+    await axios.get(`${path}/browse/featured-playlists?limit=4`, {
+      headers
+    }).then(({data}) => {
+      playlists = data.playlists.items
+    }).catch(err => {
+      console.log(err)
+      handleErrors(err)
+    })
+  }
+
+  return playlists
 }
 
 const handleErrors = (err: any) => {

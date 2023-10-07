@@ -1,14 +1,15 @@
 'use client'
-import { getUser } from "@/services/spotify"
-import { handleCloseAnimate } from "@/utils/main"
 import { Modal } from "@mui/material"
 import Link from "next/link"
 import React from "react"
-import { useDispatch } from "react-redux"
+import { useSelector } from "react-redux"
 import LogoMusicalThing from '@/assets/images/logo-musicalthing.svg'
 import LogoSpotify from '@/assets/images/spotify.svg'
 import IconPlus from '@/assets/images/icons/plus.svg'
 import Image from "next/image"
+import { GetUser } from "@/services/spotify"
+import { PopupMessage } from "@/components/popup"
+import HomePage from "./home"
 
 let scopes = [
   'streaming',
@@ -22,7 +23,8 @@ let scopes = [
   'user-library-modify',
   'user-library-read',
   'user-read-email',
-  'user-read-private'
+  'user-read-private',
+  'ugc-image-upload'
 ].join(' ');
 
 let scopes_encoded = scopes.replace(' ', '%20');
@@ -31,7 +33,7 @@ export default function Home() {
   const [modalLogin, setModalLogin] = React.useState(false)
   const CLIENT_ID = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID
   const REDIRECT_URI = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI
-  const dispatch = useDispatch()
+  const { popup } = useSelector((r: any) => r.popupReducer)
 
   const [token, setToken] = React.useState("");
 
@@ -50,7 +52,7 @@ export default function Home() {
 
   React.useEffect(() => {
     const handleUser = async () => {
-      await getUser(dispatch)
+      await GetUser()
     }
     handleUser()
   }, [token])
@@ -65,9 +67,9 @@ export default function Home() {
 
   const refCard = React.useRef<any>(null)
 
-
   return (
-    <main>
+    <main className="px-5 pt-24">
+      <PopupMessage open={popup.show} text={popup.text}/>
       <Modal open={modalLogin} className="flex justify-center items-center">
         <div className="bg-white rounded-xl p-5 w-full max-w-lg text-center animate-scale" ref={refCard}>
           <div className="flex w-full justify-center items-center gap-4">
@@ -83,6 +85,8 @@ export default function Home() {
             className="px-12 py-4 bg-orange-50 rounded-full text-white font-bold block w-max ml-auto mr-auto mt-10 hover:brightness-110 transition ease-in-out delay-50">Login With Spotify</Link>
         </div>
       </Modal>
+
+      <HomePage />
     </main>
   )
 }

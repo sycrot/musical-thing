@@ -14,6 +14,7 @@ const config: Config = {
       '24': '24px',
       '26': '26px',
       '32': '32px',
+      '36': '36px',
       '40': '40px',
     },
     colors: {

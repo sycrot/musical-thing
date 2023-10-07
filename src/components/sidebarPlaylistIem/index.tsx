@@ -6,13 +6,13 @@ import React from "react"
 import MenuDropdown, { TMenu } from "../menuDropdown"
 import ShareIcon from '@/assets/images/icons/share.svg'
 import AttetionIcon from '@/assets/images/icons/attention.svg'
-import { deleteUserPlaylist } from "@/services/spotify"
-import { Alert, Modal, Snackbar } from "@mui/material"
-import { handleCloseAnimate } from "@/utils/main"
+import { DeleteUserPlaylist } from "@/services/spotify"
+import { Modal } from "@mui/material"
+import { handleCloseAnimate, handleCopyShare } from "@/utils/main"
 import ButtonModal from "../buttonModal"
 import Link from "next/link";
-import { PopupMessage } from "../popup"
 import { useDispatch } from "react-redux"
+import { ShowPopup } from "@/services/redux/popup/slice"
 
 interface Props {
   id: string
@@ -26,23 +26,17 @@ interface Props {
 export default function SidebarPlaylistItem(props: Props) {
   const [buttonHover, setButtonHover] = React.useState(false)
   const [modalRemove, setModalRemove] = React.useState(false)
-  const [alertCopy, setAlertCopy] = React.useState(false)
-  const [alertRemove, setAlertRemove] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
   const dispatch = useDispatch()
-
   const refCard = React.useRef<any>(null)
 
   const removePlaylist = async (e: any) => {
     e.preventDefault()
-    await deleteUserPlaylist(props.id, dispatch).then(() => {
-      setAlertRemove(true)
+    setLoading(true)
+    await DeleteUserPlaylist(props.id).then(() => {
       setModalRemove(false)
+      setLoading(false)
     })
-  }
-
-  const handleCopyShare = () => {
-    setAlertCopy(true)
-    navigator.clipboard.writeText(props.title)
   }
 
   const menuItems: TMenu[] = [
@@ -52,7 +46,7 @@ export default function SidebarPlaylistItem(props: Props) {
     },
     {
       name: 'Share (Copy Link)',
-      onClick: handleCopyShare,
+      onClick: () => handleCopyShare(props.title),
       icon: ShareIcon
     }
   ]
@@ -70,7 +64,7 @@ export default function SidebarPlaylistItem(props: Props) {
   return (
     <Link href={`/playlist/${props.id}`} className="p-1 grid grid-cols-playlist gap-2 w-full items-center pr-10 cursor-pointer hover:bg-green-10 rounded-md relative" onMouseOver={() => setButtonHover(true)} onMouseOut={handleMouseOut}>
       <div className="rounded-md overflow-hidden w-14 h-14">
-        <img src={props.image} alt="" width={100} height={100} className="w-full h-fullobject-cover" />
+        <img src={props.image} alt="" width={100} height={100} className="w-full h-full object-cover" />
       </div>
       <div className="truncate col-start-2">
         <p className="font-medium text-18 truncate">{props.title}</p>
@@ -97,14 +91,10 @@ export default function SidebarPlaylistItem(props: Props) {
           </div>
           <div className="flex justify-end gap-3 mt-12">
             <ButtonModal text="Cancel" onClick={handleBack} />
-            <ButtonModal text="Remove" onClick={removePlaylist} color="bg-orange-50 text-white" />
+            <ButtonModal text="Remove" onClick={removePlaylist} color="bg-orange-50 text-white" loading={loading}/>
           </div>
         </div>
       </Modal>
-
-      <PopupMessage open={alertCopy} setOpen={setAlertCopy} text="Link copied to clipboard"/>
-      <PopupMessage open={alertRemove} setOpen={setAlertRemove} text="Removed from your library"/>
-
     </Link>
   )
 }

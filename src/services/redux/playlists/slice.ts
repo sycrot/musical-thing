@@ -1,21 +1,26 @@
 import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
-  playlists: null
+  userPlaylists: [],
+  orderLibraryUser: 'recent'
 }
 
 const playlistsSlice = createSlice({
   name: 'playlist',
   initialState,
   reducers: {
-    setPlaylists: (state, action) => {
-      return { ...state, playlists: action.payload };
+    setUserPlaylists: (state, action) => {
+      return { ...state, userPlaylists: action.payload };
     },
+    setOrderLibraryUser: (state, action) => {
+      return { ...state, orderLibraryUser: action.payload }
+    }
   }
 })
 
 export const {
-  setPlaylists
+  setUserPlaylists,
+  setOrderLibraryUser
 } = playlistsSlice.actions
 
 export default playlistsSlice.reducer

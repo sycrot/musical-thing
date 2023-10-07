@@ -3,6 +3,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Providers from '@/services/redux/provider'
+import Navbar from '@/components/navbar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,6 +27,9 @@ export default function RootLayout({
                 <Sidebar />
               </div>
               <div className="w-2/3 bg-white rounded-xl">
+                <div className="relative">
+                  <Navbar />
+                </div>
                 {children}
               </div>
             </div>

@@ -7,75 +7,68 @@ import HeartIcon from '@/assets/images/icons/heart.svg'
 import UserIcon from '@/assets/images/icons/user.svg'
 import LibraryIcon from '@/assets/images/icons/library.svg'
 import PlusIcon from '@/assets/images/icons/plus.svg'
-import SearchIcon from '@/assets/images/icons/search.svg'
-import XIcon from '@/assets/images/icons/x.svg'
 import DownIcon from '@/assets/images/icons/down.svg'
 import Link from "next/link";
 import SidebarPlaylistItem from "../sidebarPlaylistIem";
 import AddNewPlaylist from "../addNewPlaylist";
 import MenuDropdown, { TMenu } from "../menuDropdown";
 import CoverPlaylist from '@/assets/images/icons/playlist-cover.png'
-import { useDispatch, useSelector } from "react-redux";
-import { getUserPlaylists, searchUserLibrary } from "@/services/spotify";
+import { useSelector } from "react-redux";
 import { Skeleton } from "@mui/material";
+import { GetUserPlaylists, SearchUserLibrary, handleOrderLibrary } from "@/services/spotify";
+import { InputSearch } from "../inputSearch";
 
 export default function Sidebar() {
   const [openNewPlaylist, setOpenNewPlaylist] = React.useState(false)
   const [buttonClearSearch, setButtonClearSearch] = React.useState(false)
-  const [loading, setLoading] = React.useState(false)
+  const [loading, setLoading] = React.useState(true)
   const [textSearch, setTextSearch] = React.useState('')
-  const [libraryOrder, setLibraryOrder] = React.useState('Recent')
-  /* const [playlists, setPlaylists] = React.useState<[]>([]) */
   const { user } = useSelector((r: any) => r.userReducer)
-  const { playlists } = useSelector((r: any) => r.playlistsReducer)
-  const dispatch = useDispatch()
+  const { userPlaylists, orderLibraryUser } = useSelector((r: any) => r.playlistsReducer)
 
+  const getPlaylists = React.useCallback(async () => {
+    await GetUserPlaylists().then(data => {
+      setLoading(false)
+    })
+  }, [])
+
+  const handlePlaylistsSearch = React.useCallback(async () => {
+    await SearchUserLibrary(textSearch).then(data => {
+      setLoading(false)
+    })
+  }, [textSearch])
+  
   React.useEffect(() => {
-    const handlePlaylists = async () => {
+    const handlePlaylists = () => {
       if (textSearch.length > 0) {
-        await searchUserLibrary(textSearch, playlists, dispatch).then(() => {
-          setLoading(true)
-        })
+        handlePlaylistsSearch()
       } else {
-        await getUserPlaylists(dispatch).then(() => {
-          setLoading(true)
-        })
+        getPlaylists()
       }
     }
     handlePlaylists()
-  }, [textSearch])
+  }, [textSearch, getPlaylists, handlePlaylistsSearch])
+
+  const handleOrder = async (order: string) => {
+    setLoading(true)
+    setTextSearch('')
+    await handleOrderLibrary(order).then(() => {
+      setLoading(false)
+    })
+  }
 
   const menuOrderItems: TMenu[] = [
     {
       name: 'Recent',
-      onClick: () => setLibraryOrder('Recent')
+      onClick: () => handleOrder('recent')
     },
     {
       name: 'Alphabetical',
-      onClick: () => setLibraryOrder('Alphabetical')
+      onClick: () => handleOrder('alphabetical')
     }
   ]
 
   const imageUser = user?.images[0].url
-
-  const handlePlaylistItem = (id: string) => {
-    console.log(id)
-  }
-
-  const handleSearch = (e: any) => {
-    if (e.target.value.length > 0) {
-      setButtonClearSearch(true)
-      setLoading(true)
-    } else {
-      setButtonClearSearch(false)
-    }
-    setTextSearch(e.target.value)
-  }
-
-  const handleClickButtonClear = () => {
-    setTextSearch('')
-    setButtonClearSearch(!buttonClearSearch)
-  }
 
   return (
     <>
@@ -106,18 +99,12 @@ export default function Sidebar() {
           </div>
           <div className="px-3 mt-6 flex justify-between">
             <div className="relative w-full">
-              <Image src={SearchIcon} alt="Search" className="absolute top-7p left-6p" />
-              <input type="text" placeholder="Search your library" className="text-gray-60 outline-none bg-gray-20 rounded-3xl py-1 px-7 w-full" value={textSearch} onChange={handleSearch} />
-              {buttonClearSearch &&
-                <button className="w-5 h-5 absolute top-6p right-6p">
-                  <Image src={XIcon} alt="Clear" onClick={handleClickButtonClear} />
-                </button>
-              }
+              <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="Search your library"/>
             </div>
             <div className="relative flex items-center">
               <MenuDropdown items={menuOrderItems} button={
                 <>
-                  <p className="text-14">{libraryOrder}</p><Image src={DownIcon} alt="Order" className="ml-1" />
+                  <p className="text-14">{orderLibraryUser.charAt(0).toUpperCase() + orderLibraryUser.slice(1)}</p><Image src={DownIcon} alt="Order" className="ml-1" />
                 </>
               } />
             </div>
@@ -125,8 +112,7 @@ export default function Sidebar() {
         </div>
         <div className="rounded-b-xl bg-white w-full h-full flex-auto grow overflow-y-scroll pt-4">
           <div className="pl-2 grow h-4/5">
-            {/* { */}
-            {!loading ?
+            {loading ?
               Array(4).fill('skeleton').map((item, index) => (
                 <div key={index} className="flex w-full gap-2 items-center mt-2">
                   <Skeleton variant="rounded" sx={{ width: '62px' }} height={64} />
@@ -137,12 +123,13 @@ export default function Sidebar() {
                 </div>
               ))
               :
+              userPlaylists &&
               <>
-                {playlists.length <= 0 && textSearch.length > 0 &&
+                {userPlaylists.length <= 0 && textSearch.length > 0 &&
                   <p className="pl-1">0 results for <b>"{textSearch}"</b></p>
                 }
-                {playlists.map((item: any, key: any) => (
-                  <SidebarPlaylistItem id={item.id} key={key} title={item.name} image={item.images[0]?.url ? item.images[0].url : CoverPlaylist.src} by="Discover Bytes" onClick={() => handlePlaylistItem(item.id)} actions />
+                {userPlaylists.map((item: any, key: any) => (
+                  <SidebarPlaylistItem id={item.id} key={key} title={item.name} image={item.images[0]?.url ? item.images[0].url : CoverPlaylist.src} by={item.owner.display_name} actions />
                 ))}
               </>
 
