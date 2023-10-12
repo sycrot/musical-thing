@@ -9,6 +9,7 @@ interface Props {
   title: string
   description: string
   image: string
+  type: string
 }
 
 export default function PlaylistItem(props: Props) {
@@ -19,7 +20,7 @@ export default function PlaylistItem(props: Props) {
   }
 
   return (
-    <Link href={`/playlist/${props.id}`} className="p-10p rounded-4px hover:bg-green-10 block max-w-190" onMouseOver={() => setHover(true)} onMouseOut={() => setHover(false)}>
+    <Link href={`/${props.type}/${props.id}`} className="p-10p rounded-4px hover:bg-green-10 block max-w-190" onMouseOver={() => setHover(true)} onMouseOut={() => setHover(false)}>
       <div className="rounded-4px overflow-hidden relative">
         <img src={props.image} alt={props.title} className="w-full h-full" />
         {hover &&

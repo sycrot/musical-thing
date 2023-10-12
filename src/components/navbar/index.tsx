@@ -11,7 +11,7 @@ interface NIProps {
 
 function NavItem(props: NIProps) {
   const currentRouter = usePathname()
-  const routerWhite = ['genres/', 'playlist']
+  const routerWhite = ['genres/', 'playlist', 'artists/', 'album/']
 
   const router = routerWhite.find(value => currentRouter.includes(value))
 
@@ -19,7 +19,7 @@ function NavItem(props: NIProps) {
     <Link href={props.href} className={`${
       props.href === currentRouter ? 
       'text-orange-50 font-bold' : 
-      router ? 'text-white' : 'text-gray-50 hover:text-gray-60 '} 
+      router ? 'text-white text-shadow-sm shadow-gray-60' : 'text-gray-50 hover:text-gray-60'} 
       hover:font-bold`}>{props.text}</Link>
   )
 }

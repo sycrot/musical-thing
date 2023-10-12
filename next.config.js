@@ -13,7 +13,8 @@ const nextConfig = {
       'seeded-session-images.scdn.co',
       'i.scdn.co',
       'scontent-ord5-1.xx.fbcdn.net',
-      'scontent-sjc3-1.xx.fbcdn.net'
+      'scontent-sjc3-1.xx.fbcdn.net',
+      'scontent-ams2-1.xx.fbcdn.net'
     ],
   }
 }

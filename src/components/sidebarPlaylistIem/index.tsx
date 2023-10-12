@@ -32,11 +32,7 @@ export default function SidebarPlaylistItem(props: Props) {
 
   const removePlaylist = async (e: any) => {
     e.preventDefault()
-    setLoading(true)
-    await DeleteUserPlaylist(props.id).then(() => {
-      setModalRemove(false)
-      setLoading(false)
-    })
+    await DeleteUserPlaylist(props.id, setLoading, setModalRemove)
   }
 
   const menuItems: TMenu[] = [
@@ -58,6 +54,7 @@ export default function SidebarPlaylistItem(props: Props) {
   const handleBack = (e: any) => {
     e.preventDefault()
     handleCloseAnimate(refCard, modalRemove, setModalRemove, 'animate-scaleReverse')
+    setLoading(false)
     handleMouseOut()
   }
 

@@ -5,7 +5,8 @@ import Slider from "react-slick"
 
 interface Props {
   title: string
-  category: string
+  category?: string
+  items?: any
 }
 
 export function PlaylistsSection(props: Props) {
@@ -13,9 +14,11 @@ export function PlaylistsSection(props: Props) {
 
   React.useEffect(() => {
     const handlePlaylists = async () => {
-      await GetCategoryPlaylists(props.category, 10).then(data => {
-        setPlaylists(data)
-      })
+      if (props.category) {
+        await GetCategoryPlaylists(props.category, 10).then(data => {
+          setPlaylists(data)
+        })
+      }
     }
     handlePlaylists()
   }, [props.category])
@@ -32,9 +35,16 @@ export function PlaylistsSection(props: Props) {
     <div className="mt-8" id="playlistSection">
       <h2 className="font-bold text-24">{props.title}</h2>
       <Slider {...settings} centerPadding="-20px" >
-        {playlists.map((item: any, key) => (
-          <PlaylistItem key={item.id} id={item.id} title={item.name} description={item.description} image={item.images[0].url} />
-        ))}
+        {props.items ?
+          props.items.map((item: any, key: any) => (
+            <PlaylistItem key={item.id} id={item.id} title={item.name} description={item?.description} image={item.images[0]?.url} type="album"/>
+          ))
+          :
+          playlists.map((item: any, key: any) => (
+            <PlaylistItem key={item.id} id={item.id} title={item.name} description={item?.description} image={item.images[0]?.url} type="playlist"/>
+          ))
+        }
+
       </Slider>
     </div>
   )

@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import plugin from 'tailwindcss/plugin'
 
 const config: Config = {
   content: [
@@ -49,12 +50,14 @@ const config: Config = {
         '15p': '15px',
         '170': '170px',
         '60': '60px',
+        '70': '70px',
       },
       height: {
         '13': '50px',
         '170': '170px',
         '190': '190px',
         '600': '600px',
+        '70': '70px',
       },
       borderRadius: {
         '50p': '50%',
@@ -102,10 +105,26 @@ const config: Config = {
       },
       padding: {
         '10p': '10px',
+      },
+      textShadow: {
+        'sm': '0 1px 10px var(--tw-shadow-color)',
+      },
+      dropShadow: {
+        'icon': '0 1px 4px rgba(0,0,0,.7)'
       }
     },
   },
   plugins: [
+    plugin(function ({ matchUtilities, theme }) {
+      matchUtilities(
+        {
+          'text-shadow': (value) => ({
+            textShadow: value,
+          }),
+        },
+        { values: theme('textShadow') }
+      )
+    }),
   ],
 }
 export default config

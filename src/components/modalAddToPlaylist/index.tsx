@@ -39,7 +39,7 @@ export default function ModalAddToPlaylist(props: Props) {
     })
 
     setPlaylists(listResult)
-  }, [textSearch, user.id, userPlaylists])
+  }, [textSearch, user?.id, userPlaylists])
 
   const handleInitialPlaylists = React.useCallback(() => {
     let list: any = []
@@ -51,7 +51,7 @@ export default function ModalAddToPlaylist(props: Props) {
     })
 
     setPlaylists(list)
-  }, [user.id, userPlaylists])
+  }, [user?.id, userPlaylists])
 
   React.useEffect(() => {
     const handlePlaylists = () => {
@@ -63,7 +63,7 @@ export default function ModalAddToPlaylist(props: Props) {
 
     }
     handlePlaylists()
-  }, [handleInitialPlaylists, handlePlaylistsSearch, textSearch.length, user.id, userPlaylists])
+  }, [handleInitialPlaylists, handlePlaylistsSearch, textSearch.length])
 
   const handleBack = () => {
     handleCloseAnimate(refCard, props.open, props.setOpen, 'animate-scaleReverse')

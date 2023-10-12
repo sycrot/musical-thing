@@ -14,8 +14,14 @@ import { CheckIfUserSavedTracks, DeleteTrack, FollowTrack } from "@/services/spo
 import { LoadingButton } from "@mui/lab"
 
 interface Props {
-  item: any
+  id: string
+  name: string
+  uri: string
+  image: string
   trackNumber: number
+  artists: any
+  album: any
+  duration_ms: any
 }
 
 export default function ItemMusic(props: Props) {
@@ -26,10 +32,10 @@ export default function ItemMusic(props: Props) {
 
   React.useEffect(() => {
     const handleFollowedPlaylist = async () => {
-      await CheckIfUserSavedTracks(props.item.track.id).then(data => setLiked(data))
+      await CheckIfUserSavedTracks(props.id).then(data => setLiked(data))
     }
     handleFollowedPlaylist()
-  }, [props.item.track.id])
+  }, [props.id])
 
   const getDuration = (duration: string) => {
     const date = new Date(duration)
@@ -46,22 +52,22 @@ export default function ItemMusic(props: Props) {
     },
     {
       name: 'Share (Copy Link)',
-      onClick: () => handleCopyShare(props.item.track.name),
+      onClick: () => handleCopyShare(props.name),
       icon: ShareIcon
     }
   ]
 
   const handleFollowTrack = async () => {
-    await FollowTrack(props.item.track.id, setLoading, setLiked)
+    await FollowTrack(props.id, setLoading, setLiked)
   }
 
   const handleUnfollowTrack = async () => {
-    await DeleteTrack(props.item.track.id, setLoading, setLiked)
+    await DeleteTrack(props.id, setLoading, setLiked)
   }
 
   return (
     <>
-      <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} idMusic={props.item.track.uri} name={props.item.track.name} />
+      <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} idMusic={props.uri} name={props.name} />
       <tr className="cursor-pointer hover:bg-green-10" onMouseOver={() => setActions(true)} onMouseOut={() => setActions(false)}>
         <td className="pl-5 rounded-tl-5px rounded-bl-5px">
           {actions ?
@@ -74,20 +80,20 @@ export default function ItemMusic(props: Props) {
         <td className="p-2">
           <div className="grid grid-cols-musicItem items-center gap-1">
             <div className="col-span-1 w-11 h-11 overflow-hidden rounded-sm">
-              <img src={props.item.track.album.images[0].url} alt={props.item.track.name} />
+              <img src={props.image} alt={props.name} />
             </div>
             <div className="">
-              <p className="font-bold">{props.item.track.name}</p>
+              <p className="font-bold">{props.name}</p>
               <p className="font-normal text-gray-50">
-                {props.item.track.artists.map((artist: any, key: any) => (
+                {props.artists.map((artist: any, key: any) => (
                   <>{artist.name}</>
                 ))}
               </p>
             </div>
           </div>
         </td>
-        <td className="p-2"><p className="text-gray-50">{props.item.track.album.name}</p></td>
-        <td className="p-2"><p className="text-gray-50">{getDuration(props.item.track.duration_ms)}</p></td>
+        <td className="p-2"><p className="text-gray-50">{props.album.name}</p></td>
+        <td className="p-2"><p className="text-gray-50">{getDuration(props.duration_ms)}</p></td>
         <td className="p-2 px-4 rounded-tr-5px rounded-br-5px">
           <div className="flex gap-3 w-60">
             {actions &&

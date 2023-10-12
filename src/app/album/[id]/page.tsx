@@ -3,7 +3,7 @@
 import React from "react"
 import NavigateBackButton from "@/components/navigateBackButton"
 import { useParams, usePathname } from "next/navigation"
-import { CheckIfUserFollowPlaylist, DeleteUserPlaylist, FollowPlaylist, GetPlaylist } from "@/services/spotify"
+import { CheckIfUserFollowPlaylist, DeleteUserPlaylist, FollowPlaylist, GetAlbum } from "@/services/spotify"
 import Image from "next/image"
 import ButtonPlayIcon from '@/assets/images/icons/play-button.svg'
 import HeartIcon from '@/assets/images/icons/heart-l-white.svg'
@@ -15,15 +15,16 @@ import { LoadingButton } from "@mui/lab"
 
 export default function Playlist() {
   const { id } = useParams()
-  const [playlist, setPlaylist] = React.useState<any>(undefined)
+  const [album, setAlbum] = React.useState<any>(undefined)
   const [tracks, setTracks] = React.useState<[]>([])
   const [followed, setFollowed] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const routerPathname = usePathname()
 
   const handleTracks = React.useCallback(async () => {
-    await GetPlaylist(id as string).then(data => {
-      setPlaylist(data)
+    await GetAlbum(id as string).then(data => {
+      console.log(data)
+      setAlbum(data)
       setTracks(data.tracks.items)
     })
   }, [id])
@@ -47,22 +48,26 @@ export default function Playlist() {
 
   return (
     <>
-      {playlist &&
-        <div className="px-5 pt-20 pb-10" style={{ background: `linear-gradient(${playlist.primary_color && playlist.primary_color !== '#ffffff' ? playlist.primary_color : '#497174'} 0%, transparent 500px)` }}>
+      {album &&
+        <div className="px-5 pt-20 pb-10" style={{
+          background: `linear-gradient(#497174 0%, transparent 500px)`
+        }}>
           <div className="w-full">
             <NavigateBackButton />
           </div>
           <div className="flex w-full mt-5 gap-5">
             <div className="w-170 h-170 overflow-hidden rounded-5px">
-              {playlist.images[0] && 
-                <img src={playlist.images[0].url} alt={playlist.name} className="object-cover w-full h-full" />
+              {album.images[0] &&
+                <img src={album.images[0].url} alt={album.name} className="object-cover w-full h-full" />
               }
-              
+
             </div>
             <div className="text-white flex flex-col justify-center truncate">
-              <h1 className="font-bold text-40 text-shadow-sm shadow-gray-60">{playlist.name}</h1>
-              <p className="truncate text-shadow-sm shadow-gray-60">{playlist.description}</p>
-              <p className="text-14 mt-6 text-shadow-sm shadow-gray-60">Made by <b>{playlist.owner.display_name}</b> • {playlist.tracks.items.length} Songs</p>
+              <h1 className="font-bold text-40 text-shadow-sm shadow-gray-60">{album.name}</h1>
+              <p className="truncate text-shadow-sm shadow-gray-60">{album.description}</p>
+              <p className="text-14 mt-6 text-shadow-sm shadow-gray-60">Made by {album.artists.map((item: any, key: any) => (
+                  <b key={key}>{item.name}</b>
+                ))} • {album.total_tracks} Songs</p>
             </div>
           </div>
           <div className="flex gap-5 mt-7 items-center">
@@ -84,7 +89,7 @@ export default function Playlist() {
 
 
             <button onClick={() => handleCopyShare(routerPathname)}>
-              <Image src={ShareIcon} alt="share" className="drop-shadow-icon"/>
+              <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
             </button>
           </div>
           <div className="mt-12">
@@ -100,7 +105,7 @@ export default function Playlist() {
               </thead>
               <tbody>
                 {tracks.map((item: any, key) => (
-                  <ItemMusic key={key} trackNumber={key} id={item.track.id} name={item.track.name} uri={item.track.uri} image={item.track.album.images[0]?.url} artists={item.track.artists} album={item.track.album} duration_ms={item.track.duration_ms}  />
+                  <ItemMusic key={key} trackNumber={key} id={item.id} name={item.name} uri={item.uri} image={album.images[0]?.url} artists={item.artists} album={album} duration_ms={item.duration_ms} />
                 ))}
 
               </tbody>
