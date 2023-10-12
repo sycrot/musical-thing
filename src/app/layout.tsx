@@ -4,6 +4,10 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import Providers from '@/services/redux/provider'
 import Navbar from '@/components/navbar'
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import ModalLogin from '@/components/modalLogin'
+import { PopupMessage } from '@/components/popup'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,12 +25,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
+          <ModalLogin />
+          <PopupMessage />
           <div className="p-1 bg-gray-10 w-full h-screen max-w-desktop mr-auto ml-auto text-gray-60">
             <div className="w-full h-3/4 flex gap-2">
-              <div className="w-2/6">
+              <div className="w-1/4">
                 <Sidebar />
               </div>
-              <div className="w-2/3 bg-white rounded-xl">
+              <div className="w-3/4 bg-white rounded-xl h-full overflow-y-auto overflow-x-hidden">
                 <div className="relative">
                   <Navbar />
                 </div>

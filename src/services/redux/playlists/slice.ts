@@ -2,7 +2,8 @@ import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
   userPlaylists: [],
-  orderLibraryUser: 'recent'
+  orderLibraryUser: 'recent',
+  colorPage: ''
 }
 
 const playlistsSlice = createSlice({
@@ -14,13 +15,17 @@ const playlistsSlice = createSlice({
     },
     setOrderLibraryUser: (state, action) => {
       return { ...state, orderLibraryUser: action.payload }
+    },
+    setColorPage: (state, action) => {
+      return { ...state, colorPage: action.payload }
     }
   }
 })
 
 export const {
   setUserPlaylists,
-  setOrderLibraryUser
+  setOrderLibraryUser,
+  setColorPage
 } = playlistsSlice.actions
 
 export default playlistsSlice.reducer

@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { InputSearch } from "../inputSearch";
-import { usePathname } from "next/navigation";
+import { usePathname,  } from "next/navigation";
 
 interface NIProps {
   text: string
@@ -11,9 +11,16 @@ interface NIProps {
 
 function NavItem(props: NIProps) {
   const currentRouter = usePathname()
+  const routerWhite = ['genres/', 'playlist']
+
+  const router = routerWhite.find(value => currentRouter.includes(value))
 
   return (
-    <Link href={props.href} className={`${currentRouter === props.href ? 'text-orange-50 font-bold' : 'text-gray-50 hover:text-gray-60 hover:font-bold'} `}>{props.text}</Link>
+    <Link href={props.href} className={`${
+      props.href === currentRouter ? 
+      'text-orange-50 font-bold' : 
+      router ? 'text-white' : 'text-gray-50 hover:text-gray-60 '} 
+      hover:font-bold`}>{props.text}</Link>
   )
 }
 

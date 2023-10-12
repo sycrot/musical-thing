@@ -18,6 +18,7 @@ const config: Config = {
       '40': '40px',
     },
     colors: {
+      'transparent': 'transparent',
       'black-10': 'rgba(0,0,0,.4)',
       'white': '#ffffff',
       'gray-10': '#F6F6F6',
@@ -39,30 +40,39 @@ const config: Config = {
     extend: {
       maxWidth: {
         'desktop': '1440px',
-        '94': '94px'
+        '94': '94px',
+        '190': '190px',
+        '195': '195px',
       },
       width: {
-        '13': '50px'
+        '13': '50px',
+        '15p': '15px',
+        '170': '170px',
+        '60': '60px',
       },
       height: {
-        '13': '50px'
+        '13': '50px',
+        '170': '170px',
+        '190': '190px',
+        '600': '600px',
       },
       borderRadius: {
         '50p': '50%',
-        '4px': '4px'
+        '4px': '4px',
+        '5px': '5px'
       },
       spacing: {
         '6p': '6px',
         '7p': '7px',
         '10l': '-10px',
+        '10p': '10px',
       },
       flexBasis: {
         'auto': 'auto'
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic':
-          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))'
       },
       keyframes: {
         scale: {
@@ -72,17 +82,26 @@ const config: Config = {
         scaleReverse: {
           '0%': { transform: 'scale(1)' },
           '100%': { transform: 'scale(0)' },
+        },
+        buttonPlaylist: {
+          '0%': { transform: 'translateY(60px)' },
+          '100%': { transform: 'translateY(0)' },
         }
       },
       animation: {
         scale: 'scale .2s ease-in-out',
         scaleReverse: 'scaleReverse .2s ease-in-out',
+        buttonPlaylist: 'buttonPlaylist .2s ease-in-out',
       },
       boxShadow: {
         'card-15': '1px 1px 6px rgba(0,0,0,.15)'
       },
       gridTemplateColumns: {
-        'playlist': '3.5rem auto'
+        'playlist': '3.5rem auto',
+        'musicItem': '2.75rem auto'
+      },
+      padding: {
+        '10p': '10px',
       }
     },
   },

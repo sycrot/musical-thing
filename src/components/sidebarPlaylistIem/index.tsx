@@ -19,7 +19,7 @@ interface Props {
   image: string
   title: string
   by: string
-  onClick?: () => void
+  onClick?: (e?: any) => void
   actions?: boolean
 }
 
@@ -62,7 +62,7 @@ export default function SidebarPlaylistItem(props: Props) {
   }
 
   return (
-    <Link href={`/playlist/${props.id}`} className="p-1 grid grid-cols-playlist gap-2 w-full items-center pr-10 cursor-pointer hover:bg-green-10 rounded-md relative" onMouseOver={() => setButtonHover(true)} onMouseOut={handleMouseOut}>
+    <Link href={`/playlist/${props.id}`} className="p-1 grid grid-cols-playlist gap-2 w-full items-center pr-10 cursor-pointer hover:bg-green-10 rounded-md relative" onMouseOver={() => setButtonHover(true)} onMouseOut={handleMouseOut} onClick={props.onClick}>
       <div className="rounded-md overflow-hidden w-14 h-14">
         <img src={props.image} alt="" width={100} height={100} className="w-full h-full object-cover" />
       </div>

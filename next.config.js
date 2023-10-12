@@ -12,7 +12,8 @@ const nextConfig = {
       'seed-mix-image.spotifycdn.com',
       'seeded-session-images.scdn.co',
       'i.scdn.co',
-      'scontent-ord5-1.xx.fbcdn.net'
+      'scontent-ord5-1.xx.fbcdn.net',
+      'scontent-sjc3-1.xx.fbcdn.net'
     ],
   }
 }
