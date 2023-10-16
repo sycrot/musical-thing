@@ -46,7 +46,7 @@ export default function Genre() {
       <div className="mt-10 flex gap-4 flex-wrap">
         {playlists &&
           playlists.map((item: any, key) => (
-            <PlaylistItem key={key} id={item?.id} title={item?.name} description={item?.description} image={item?.images[0].url} />
+            <PlaylistItem key={key} id={item?.id} title={item?.name} description={item?.description} image={item?.images[0].url} type="playlist"/>
           ))
         }
       </div>

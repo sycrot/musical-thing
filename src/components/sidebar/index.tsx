@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable react/no-unescaped-entities */
 'use client'
 import React from "react";
@@ -80,7 +81,7 @@ export default function Sidebar() {
           <Image src={Logo} alt="Musical Thing Logo" />
           <div className="flex justify-between items-center w-full mt-5">
             <Link className="rounded-50p overflow-hidden w-13 h-13 bg-gray-20 flex justify-center items-center" href="">
-              <Image src={imageUser ? imageUser : UserIcon} alt="Avatar" width={100} height={100} className="w-full h-full object-cover" />
+              <img src={imageUser ? imageUser : UserIcon} alt="Avatar" width={100} height={100} className="w-full h-full object-cover" />
             </Link>
             <button className="">
               <Image src={HeartIcon} alt="Favorites" />

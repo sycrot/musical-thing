@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { InputSearch } from "../inputSearch";
-import { usePathname,  } from "next/navigation";
+import { usePathname, useRouter,  } from "next/navigation";
 
 interface NIProps {
   text: string
@@ -28,6 +28,17 @@ export default function Navbar() {
   const [buttonClearSearch, setButtonClearSearch] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [textSearch, setTextSearch] = React.useState('')
+  const [keyCode, setKeyCode] = React.useState(0)
+  const router = useRouter()
+
+  React.useEffect(() => {
+    const handleSearchPage = () => {
+      if (keyCode === 13) {
+        router.push(`/search/${textSearch}`)
+      }
+    }
+    handleSearchPage()
+  }, [keyCode, textSearch])
   
   return (
     <div className="absolute top-7 px-5 w-full">
@@ -38,7 +49,7 @@ export default function Navbar() {
           <NavItem text="Artists" href="/artists" />
         </div>
         <div className="w-full max-w-xs relative">
-          <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="What do you want to hear?"/>
+          <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="What do you want to hear?" setKeyCode={setKeyCode}/>
         </div>
       </div>
 

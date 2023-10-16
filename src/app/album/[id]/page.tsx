@@ -3,7 +3,7 @@
 import React from "react"
 import NavigateBackButton from "@/components/navigateBackButton"
 import { useParams, usePathname } from "next/navigation"
-import { CheckIfUserFollowPlaylist, DeleteUserPlaylist, FollowPlaylist, GetAlbum } from "@/services/spotify"
+import { GetAlbum, checkIfUserFollowed, handleFollow, handleUnfollow } from "@/services/spotify"
 import Image from "next/image"
 import ButtonPlayIcon from '@/assets/images/icons/play-button.svg'
 import HeartIcon from '@/assets/images/icons/heart-l-white.svg'
@@ -12,6 +12,7 @@ import ShareIcon from '@/assets/images/icons/share-white.svg'
 import ItemMusic from "@/components/musicItem"
 import { handleCopyShare } from "@/utils/main"
 import { LoadingButton } from "@mui/lab"
+import Link from "next/link"
 
 export default function Playlist() {
   const { id } = useParams()
@@ -23,76 +24,74 @@ export default function Playlist() {
 
   const handleTracks = React.useCallback(async () => {
     await GetAlbum(id as string).then(data => {
-      console.log(data)
       setAlbum(data)
       setTracks(data.tracks.items)
     })
   }, [id])
 
-  const handleFollowedPlaylist = React.useCallback(async () => {
-    await CheckIfUserFollowPlaylist(id as string).then(data => setFollowed(data))
+  const handleFollowedAlbum = React.useCallback(async () => {
+    await checkIfUserFollowed('me/albums/contains', id as string).then(data => setFollowed(data))
   }, [id])
 
   React.useEffect(() => {
     handleTracks()
-    handleFollowedPlaylist()
-  }, [handleFollowedPlaylist, handleTracks])
+    handleFollowedAlbum()
+  }, [handleFollowedAlbum, handleTracks])
 
-  const handleFollowPlaylist = async () => {
-    await FollowPlaylist(id as string, setLoading, setFollowed)
+  const handleFollowAlbum = async () => {
+    await handleFollow('me/albums', id as string, 'albums', setLoading, setFollowed)
   }
 
-  const handleUnfollowPlaylist = async () => {
-    await DeleteUserPlaylist(id as string, setLoading, setFollowed)
+  const handleUnfollowAlbum = async () => {
+    await handleUnfollow('me/albums', id as string, 'albums', setLoading, setFollowed)
   }
 
   return (
     <>
       {album &&
-        <div className="px-5 pt-20 pb-10" style={{
-          background: `linear-gradient(#497174 0%, transparent 500px)`
-        }}>
-          <div className="w-full">
-            <NavigateBackButton />
-          </div>
-          <div className="flex w-full mt-5 gap-5">
-            <div className="w-170 h-170 overflow-hidden rounded-5px">
-              {album.images[0] &&
-                <img src={album.images[0].url} alt={album.name} className="object-cover w-full h-full" />
+        <>
+          <div className="px-5 pt-20 pb-10" style={{
+            backgroundImage: `url(${album.images[0]?.url})`,
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'cover',
+            backgroundColor: 'rgba(0,0,0,.4)'
+          }}>
+            <div className="w-full">
+              <NavigateBackButton />
+            </div>
+            <div className="flex w-full mt-5 gap-5">
+              <div className="text-white flex flex-col justify-center truncate">
+                <h1 className="font-bold text-40 text-shadow-sm shadow-gray-60">{album.name}</h1>
+                <p className="truncate text-shadow-sm shadow-gray-60">{album.description}</p>
+                <p className="text-14 mt-6 text-shadow-sm shadow-gray-60">Made by {album.artists.map((item: any, key: any) => (
+                  <Link key={key} href={`/artists/${item.id}`} className="hover:underline"><b>{item.name}{album.artists.length > 1 && ' '}</b></Link>
+                ))} • {album.total_tracks} Songs</p>
+              </div>
+            </div>
+            <div className="flex gap-5 mt-7 items-center">
+              <button>
+                <Image src={ButtonPlayIcon} alt="play" />
+              </button>
+              {loading ?
+                <LoadingButton loading className="w-9 h-9 min-w-0" />
+                :
+                followed ?
+                  <button onClick={handleUnfollowAlbum} className="w-9 h-9">
+                    <Image src={HeartLIcon} alt="heart" className="w-full h-full" />
+                  </button>
+                  :
+                  <button onClick={handleFollowAlbum} className="w-9 h-9">
+                    <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
+                  </button>
               }
 
-            </div>
-            <div className="text-white flex flex-col justify-center truncate">
-              <h1 className="font-bold text-40 text-shadow-sm shadow-gray-60">{album.name}</h1>
-              <p className="truncate text-shadow-sm shadow-gray-60">{album.description}</p>
-              <p className="text-14 mt-6 text-shadow-sm shadow-gray-60">Made by {album.artists.map((item: any, key: any) => (
-                  <b key={key}>{item.name}</b>
-                ))} • {album.total_tracks} Songs</p>
+
+              <button onClick={() => handleCopyShare(routerPathname)}>
+                <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
+              </button>
             </div>
           </div>
-          <div className="flex gap-5 mt-7 items-center">
-            <button>
-              <Image src={ButtonPlayIcon} alt="play" />
-            </button>
-            {loading ?
-              <LoadingButton loading className="w-9 h-9 min-w-0" />
-              :
-              followed ?
-                <button onClick={handleUnfollowPlaylist} className="w-9 h-9">
-                  <Image src={HeartLIcon} alt="heart" className="w-full h-full" />
-                </button>
-                :
-                <button onClick={handleFollowPlaylist} className="w-9 h-9">
-                  <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
-                </button>
-            }
-
-
-            <button onClick={() => handleCopyShare(routerPathname)}>
-              <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
-            </button>
-          </div>
-          <div className="mt-12">
+          <div className="px-5 mt-4">
             <table className="text-left border-separate border-spacing-0 w-full">
               <thead>
                 <tr>
@@ -111,7 +110,8 @@ export default function Playlist() {
               </tbody>
             </table>
           </div>
-        </div >
+        </>
+
       }
     </>
   )

@@ -146,7 +146,7 @@ export async function DeleteUserPlaylist(
 }
 
 export async function FollowPlaylist(
-  playlist_id: string, 
+  playlist_id: string,
   setLoading: (loading: boolean) => void,
   setFollowed: (loading: boolean) => void) {
   if (window.localStorage.token) {
@@ -180,73 +180,6 @@ export async function CheckIfUserFollowPlaylist(playlist_id: string) {
 
   if (window.localStorage.token && user) {
     await axios.get(`${path}/playlists/${playlist_id}/followers/contains?ids=${user.id}`,
-      {
-        headers
-      }).then(({ data }) => {
-        response = data[0]
-      }).catch(err => {
-        handleErrors(err)
-      })
-  }
-
-  return response
-}
-
-export async function FollowTrack(
-  track_id: string,
-  setLoading: (loading: boolean) => void,
-  setLiked: (loading: boolean) => void) {
-  if (window.localStorage.token) {
-    setLoading(true)
-    await axios.put(`${path}/me/tracks`, {
-      ids: [
-        track_id
-      ]
-    },
-      {
-        headers
-      }).then(() => {
-        store.dispatch(ShowPopup({
-          text: 'Added to liked songs',
-          show: true
-        }))
-
-        setLoading(false)
-        setLiked(true)
-      }).catch(err => {
-        handleErrors(err)
-      })
-  }
-}
-
-export async function DeleteTrack(
-  id: string,
-  setLoading: (loading: boolean) => void,
-  setLiked: (loading: boolean) => void) {
-  if (window.localStorage.token) {
-    setLoading(true)
-    await axios.delete(`${path}/me/tracks?ids=${id}`,
-      {
-        headers
-      }).then(() => {
-        store.dispatch(ShowPopup({
-          text: 'Remove from liked musics',
-          show: true
-        }))
-
-        setLoading(false)
-        setLiked(false)
-      }).catch(err => {
-        handleErrors(err)
-      })
-  }
-}
-
-export async function CheckIfUserSavedTracks(track_id: string) {
-  let response: any
-
-  if (window.localStorage.token) {
-    await axios.get(`${path}/me/tracks/contains?ids=${track_id}`,
       {
         headers
       }).then(({ data }) => {
@@ -447,7 +380,7 @@ export async function AddToPlaylist(playlist_id: string, uri: string, playlistNa
   }
 }
 
-export async function GetTopArtists () {
+export async function GetTopArtists() {
   let response: any = []
 
   if (window.localStorage.token) {
@@ -481,7 +414,7 @@ export async function GetFeaturedPlaylists() {
   return playlists
 }
 
-export async function GetArtist (id: string) {
+export async function GetArtist(id: string) {
   let response: any = []
 
   if (window.localStorage.token) {
@@ -498,7 +431,7 @@ export async function GetArtist (id: string) {
   return response
 }
 
-export async function GetArtistTopTracks (id: string) {
+export async function GetArtistTopTracks(id: string) {
   let response: any = []
 
   if (window.localStorage.token) {
@@ -515,7 +448,7 @@ export async function GetArtistTopTracks (id: string) {
   return response
 }
 
-export async function GetArtistAlbums (id: string) {
+export async function GetArtistAlbums(id: string) {
   let response: any = []
 
   if (window.localStorage.token) {
@@ -532,7 +465,7 @@ export async function GetArtistAlbums (id: string) {
   return response
 }
 
-export async function GetArtistRelatedArtists (id: string) {
+export async function GetArtistRelatedArtists(id: string) {
   let response: any = []
 
   if (window.localStorage.token) {
@@ -549,11 +482,11 @@ export async function GetArtistRelatedArtists (id: string) {
   return response
 }
 
-export async function GetAlbum (id: string) {
+export async function GetAlbum(id: string) {
   let response: any = []
 
   if (window.localStorage.token) {
-    await axios.get(`${path}/albums/4aawyAB9vmqN3uQ7FjRGTy`,
+    await axios.get(`${path}/albums/${id}`,
       {
         headers
       }).then(({ data }) => {
@@ -565,6 +498,132 @@ export async function GetAlbum (id: string) {
 
   return response
 }
+
+export async function handleFollow(
+  link: string,
+  id: string,
+  type: string,
+  setLoading: (loading: boolean) => void,
+  setLiked: (loading: boolean) => void) {
+  if (window.localStorage.token) {
+    setLoading(true)
+    await axios.put(`${path}/${link}`, {
+      ids: [
+        id
+      ]
+    },
+      {
+        headers
+      }).then(() => {
+        store.dispatch(ShowPopup({
+          text: `Added to followed ${type}`,
+          show: true
+        }))
+
+        setLoading(false)
+        setLiked(true)
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
+}
+
+export async function handleUnfollow(
+  link: string,
+  id: string,
+  type: string,
+  setLoading: (loading: boolean) => void,
+  setLiked: (loading: boolean) => void) {
+  if (window.localStorage.token) {
+    setLoading(true)
+    await axios.delete(`${path}/${link}?ids=${id}`,
+      {
+        headers
+      }).then(() => {
+        store.dispatch(ShowPopup({
+          text: `Remove from followed ${type}`,
+          show: true
+        }))
+
+        setLoading(false)
+        setLiked(false)
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
+}
+
+export async function checkIfUserFollowed(
+  link: string,
+  id: string,
+) {
+  let response: any
+
+  if (window.localStorage.token) {
+    await axios.get(`${path}/${link}?ids=${id}`,
+      {
+        headers
+      }).then(({ data }) => {
+        response = data[0]
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
+
+  return response
+}
+
+export async function handleSearch(text: string) {
+  let response: any = []
+
+  if (window.localStorage.token) {
+    await axios.get(`${path}/search?q=${text}&type=album%2Cplaylist%2Ctrack%2Cartist`,
+      {
+        headers
+      }).then(({ data }) => {
+        response = data
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
+
+  return response
+}
+
+export async function getRecentlyPlayedTrack() {
+  let response: any = []
+
+  if (window.localStorage.token) {
+    await axios.get(`${path}/me/player/recently-played?limit=1`,
+      {
+        headers
+      }).then(({ data }) => {
+        response = data
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
+
+  return response
+}
+
+export async function getAvailableDevices() {
+  let response: any = []
+
+  if (window.localStorage.token) {
+    await axios.get(`${path}/me/player/devices`,
+      {
+        headers
+      }).then(({ data }) => {
+        response = data
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
+
+  return response
+}
+
 
 const handleErrors = (err: any) => {
   if (err.response.data.error.message === 'Invalid access token') {

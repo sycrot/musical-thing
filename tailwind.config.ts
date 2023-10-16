@@ -48,13 +48,17 @@ const config: Config = {
       width: {
         '13': '50px',
         '15p': '15px',
+        '17p': '17px',
         '170': '170px',
+        '120': '120px',
+        '430': '430px',
         '60': '60px',
         '70': '70px',
       },
       height: {
         '13': '50px',
         '170': '170px',
+        '120': '120px',
         '190': '190px',
         '600': '600px',
         '70': '70px',
@@ -69,6 +73,7 @@ const config: Config = {
         '7p': '7px',
         '10l': '-10px',
         '10p': '10px',
+        '50p': '50%',
       },
       flexBasis: {
         'auto': 'auto'
@@ -101,7 +106,8 @@ const config: Config = {
       },
       gridTemplateColumns: {
         'playlist': '3.5rem auto',
-        'musicItem': '2.75rem auto'
+        'musicItem': '2.75rem auto',
+        'playlistSlide': '15rem auto'
       },
       padding: {
         '10p': '10px',

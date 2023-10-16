@@ -10,6 +10,7 @@ interface Props {
   setButtonClearSearch: (e: boolean) =>  void
   setLoading: (e: boolean) => void
   setTextSearch: (e: string) => void
+  setKeyCode?: (e: number) => void
 }
 
 export function InputSearch(props: Props) {
@@ -28,10 +29,14 @@ export function InputSearch(props: Props) {
     props.setButtonClearSearch(!props.buttonClearSearch)
   }
 
+  const handleKeyDown = (e: any) => {
+    if (props.setKeyCode) props.setKeyCode(e.keyCode)
+  }
+
   return (
     <>
       <Image src={SearchIcon} alt="Search" className="absolute top-7p left-6p" />
-      <input type="text" placeholder={props.placeholder} className="text-gray-60 outline-none bg-gray-20 rounded-3xl py-1 px-7 w-full" value={props.textSearch} onChange={handleSearch} />
+      <input type="text" placeholder={props.placeholder} className="text-gray-60 outline-none bg-gray-20 rounded-3xl py-1 px-7 w-full" value={props.textSearch} onChange={handleSearch} onKeyDown={handleKeyDown}/>
       {props.buttonClearSearch &&
         <button className="w-5 h-5 absolute top-6p right-6p">
           <Image src={XIcon} alt="Clear" onClick={handleClickButtonClear} />

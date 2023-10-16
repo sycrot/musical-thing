@@ -3,6 +3,9 @@ import React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import IconPlay from '@/assets/images/icons/play-button.svg'
+import { GetPlaylist } from "@/services/spotify"
+import { useDispatch, useSelector } from "react-redux"
+import { setCurrentTrack, setPlayMusic, setTrackItem, setTrackNumber, setTracks } from "@/services/redux/playlists/slice"
 
 interface Props {
   id: string
@@ -14,9 +17,21 @@ interface Props {
 
 export default function PlaylistItem(props: Props) {
   const [hover, setHover] = React.useState(false)
+  const { currentTrack } = useSelector((r: any) => r.playlistsReducer)
+  const dispatch = useDispatch()
 
-  const handleClickPlay = (e: any) => {
+  const handleClickPlay = async (e: any) => {
     e.preventDefault()
+
+    await GetPlaylist(props.id).then(data => {
+      dispatch(setTracks(data.tracks.items))
+      dispatch(setTrackItem(data.tracks.items[0].track))
+      currentTrack.load()
+      currentTrack.setAttribute('src', data.tracks.items[0]?.track.preview_url)
+      currentTrack.play()
+      dispatch(setPlayMusic(true))
+      dispatch(setTrackNumber(0))
+    })
   }
 
   return (

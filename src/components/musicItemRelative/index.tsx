@@ -2,17 +2,17 @@
 'use client'
 import Image from "next/image"
 import React from "react"
+import PlayIcon from '@/assets/images/icons/play-music.svg'
+import { checkIfUserFollowed, handleFollow, handleUnfollow } from "@/services/spotify"
+import MenuDropdown, { TMenu } from "../menuDropdown"
+import ShareIcon from '@/assets/images/icons/share.svg'
+import { handleCopyShare } from "@/utils/main"
+import Link from "next/link"
+import { LoadingButton } from "@mui/lab"
 import HeartIcon from '@/assets/images/icons/heart-gray.svg'
 import HeartLIcon from '@/assets/images/icons/heart-l-gray.svg'
 import MenuIcon from '@/assets/images/icons/menu-points.svg'
-import PlayIcon from '@/assets/images/icons/play-music.svg'
-import ShareIcon from '@/assets/images/icons/share.svg'
-import MenuDropdown, { TMenu } from "../menuDropdown"
-import { handleCopyShare } from "@/utils/main"
 import ModalAddToPlaylist from "../modalAddToPlaylist"
-import { checkIfUserFollowed, handleFollow, handleUnfollow } from "@/services/spotify"
-import { LoadingButton } from "@mui/lab"
-import Link from "next/link"
 
 interface Props {
   id: string
@@ -23,9 +23,10 @@ interface Props {
   artists: any
   album: any
   duration_ms: any
+  className?: string
 }
 
-export default function ItemMusic(props: Props) {
+export default function MusicItemRelative(props: Props) {
   const [actions, setActions] = React.useState(false)
   const [modalAddToPlaylists, setModalAddToPlaylist] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
@@ -69,19 +70,14 @@ export default function ItemMusic(props: Props) {
   return (
     <>
       <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} idMusic={props.uri} name={props.name} />
-      <tr className="cursor-pointer hover:bg-green-10" onMouseOver={() => setActions(true)} onMouseOut={() => setActions(false)}>
-        <td className="pl-5 rounded-tl-5px rounded-bl-5px">
-          {actions ?
-            <Image src={PlayIcon} alt="play" />
-            :
-            <p className="text-gray-50 w-15p">{props.trackNumber}</p>
-          }
-
-        </td>
-        <td className="p-2">
+      <div className={`cursor-pointer hover:bg-green-10 p-2 ${props.className}`} onMouseOver={() => setActions(true)} onMouseOut={() => setActions(false)}>
+        <div className="flex gap-2 justify-between">
           <div className="grid grid-cols-musicItem items-center gap-1">
-            <div className="col-span-1 w-11 h-11 overflow-hidden rounded-sm">
+            <div className="w-11 h-11 overflow-hidden rounded-sm relative flex justify-center items-center">
               <img src={props.image} alt={props.name} />
+              {actions &&
+                <Image src={PlayIcon} alt="play" className="absolute z-10 w-4 h-5" />
+              }
             </div>
             <div className="truncate">
               <p className="font-bold truncate">{props.name}</p>
@@ -92,36 +88,36 @@ export default function ItemMusic(props: Props) {
               </p>
             </div>
           </div>
-        </td>
-        <td className="p-2"><Link href={`/album/${props.album.id}`} className="hover:underline"><p className="text-gray-50">{props.album.name}</p></Link></td>
-        <td className="p-2"><p className="text-gray-50">{getDuration(props.duration_ms)}</p></td>
-        <td className="p-2 px-4 rounded-tr-5px rounded-br-5px">
-          <div className="flex gap-3 w-60">
-            {actions &&
-              <>
-                {loading ?
-                  <LoadingButton loading className="w-6 h-6 min-w-0" />
-                  :
-                  liked ?
-                    <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                      <Image src={HeartLIcon} alt="Heart" className="w-full h-full" />
-                    </button>
+          <div className="flex gap-8 items-center">
+            <p className="text-gray-50">{getDuration(props.duration_ms)}</p>
+            <div className="flex gap-3 w-60">
+              {actions &&
+                <>
+                  {loading ?
+                    <LoadingButton loading className="w-6 h-6 min-w-0" />
                     :
-                    <button className="w-6 h-6" onClick={handleFollowTrack}>
-                      <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
-                    </button>
-                }
-                <MenuDropdown items={menuItems} buttonStyle="grayscale w-6 h-6" menuItemsStyle="mt-10l -right-8" button={
-                  <>
-                    <Image src={MenuIcon} alt="Menu" />
-                  </>
-                } />
-              </>
-            }
+                    liked ?
+                      <button className="w-6 h-6" onClick={handleUnfollowTrack}>
+                        <Image src={HeartLIcon} alt="Heart" className="w-full h-full" />
+                      </button>
+                      :
+                      <button className="w-6 h-6" onClick={handleFollowTrack}>
+                        <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
+                      </button>
+                  }
+                  <MenuDropdown items={menuItems} buttonStyle="grayscale w-6 h-6" menuItemsStyle="mt-10l -right-8" button={
+                    <>
+                      <Image src={MenuIcon} alt="Menu" />
+                    </>
+                  } />
+                </>
+              }
 
+            </div>
           </div>
-        </td>
-      </tr>
+        </div>
+
+      </div>
     </>
 
   )

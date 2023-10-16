@@ -48,7 +48,7 @@ export default function Playlist() {
   return (
     <>
       {playlist &&
-        <div className="px-5 pt-20 pb-10" style={{ background: `linear-gradient(${playlist.primary_color && playlist.primary_color !== '#ffffff' ? playlist.primary_color : '#497174'} 0%, transparent 500px)` }}>
+        <div className="px-5 pt-20 pb-10" style={{ background: `linear-gradient(${playlist.primary_color && playlist.primary_color.includes('#ffffff') ? playlist.primary_color : '#497174'} 0%, transparent 500px)` }}>
           <div className="w-full">
             <NavigateBackButton />
           </div>
@@ -100,7 +100,7 @@ export default function Playlist() {
               </thead>
               <tbody>
                 {tracks.map((item: any, key) => (
-                  <ItemMusic key={key} trackNumber={key} id={item.track.id} name={item.track.name} uri={item.track.uri} image={item.track.album.images[0]?.url} artists={item.track.artists} album={item.track.album} duration_ms={item.track.duration_ms}  />
+                  <ItemMusic key={key} trackNumber={key} id={item.track.id} name={item.track.name} uri={item.track.uri} image={item.track.album.images[0]?.url} artists={item.track.artists} album={item.track.album} duration_ms={item.track.duration_ms} />
                 ))}
 
               </tbody>

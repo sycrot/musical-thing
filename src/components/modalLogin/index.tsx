@@ -22,7 +22,9 @@ let scopes = [
   'user-library-read',
   'user-read-email',
   'user-read-private',
-  'ugc-image-upload'
+  'ugc-image-upload',
+  'user-read-recently-played',
+  'user-read-playback-state',
 ].join(' ');
 
 let scopes_encoded = scopes.replace(' ', '%20');
