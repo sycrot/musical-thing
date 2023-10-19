@@ -4,11 +4,13 @@ const initialState = {
   userPlaylists: [],
   orderLibraryUser: 'recent',
   colorPage: '',
-  tracks: null,
+  tracksPlaylist: null,
   trackItem: null,
   currentTrack: null,
   playMusic: false,
-  trackNumber: 0
+  trackNumber: 0,
+  currentPlaylistId: null,
+  trackCover: null
 }
 
 const playlistsSlice = createSlice({
@@ -24,8 +26,8 @@ const playlistsSlice = createSlice({
     setColorPage: (state, action) => {
       return { ...state, colorPage: action.payload }
     },
-    setTracks: (state, action) => {
-      return { ...state, tracks: action.payload }
+    setTracksPlaylist: (state, action) => {
+      return { ...state, tracksPlaylist: action.payload }
     },
     setCurrentTrack: (state, action) => {
       return { ...state, currentTrack: action.payload }
@@ -39,6 +41,12 @@ const playlistsSlice = createSlice({
     setTrackNumber: (state, action) => {
       return { ...state, trackNumber: action.payload }
     },
+    setCurrentPlaylistId: (state, action) => {
+      return { ...state, currentPlaylistId: action.payload }
+    },
+    setTrackCover: (state, action) => {
+      return { ...state, trackCover: action.payload }
+    },
   }
 })
 
@@ -46,11 +54,13 @@ export const {
   setUserPlaylists,
   setOrderLibraryUser,
   setColorPage,
-  setTracks,
+  setTracksPlaylist,
   setCurrentTrack,
   setPlayMusic,
   setTrackItem,
-  setTrackNumber
+  setTrackNumber,
+  setCurrentPlaylistId,
+  setTrackCover
 } = playlistsSlice.actions
 
 export default playlistsSlice.reducer

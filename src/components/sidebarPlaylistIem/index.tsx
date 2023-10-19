@@ -27,7 +27,6 @@ export default function SidebarPlaylistItem(props: Props) {
   const [buttonHover, setButtonHover] = React.useState(false)
   const [modalRemove, setModalRemove] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
-  const dispatch = useDispatch()
   const refCard = React.useRef<any>(null)
 
   const removePlaylist = async (e: any) => {
@@ -42,7 +41,7 @@ export default function SidebarPlaylistItem(props: Props) {
     },
     {
       name: 'Share (Copy Link)',
-      onClick: () => handleCopyShare(props.title),
+      onClick: () => handleCopyShare(`${window.location.origin}/playlist/${props.id}`),
       icon: ShareIcon
     }
   ]

@@ -1,17 +1,26 @@
 import React from "react";
 import Slider from 'react-slick'
-import { CheckIfUserFollowPlaylist, DeleteUserPlaylist, FollowPlaylist, GetFeaturedPlaylists, GetPlaylist } from "@/services/spotify";
+import { CheckIfUserFollowPlaylist, DeleteUserPlaylist, FollowPlaylist, GetFeaturedPlaylists, handlePlayItem } from "@/services/spotify";
 import Image from "next/image";
 import IconHeartL from '@/assets/images/icons/heart-l.svg'
 import IconHeart from '@/assets/images/icons/heart.svg'
-
 import ButtonModal from "../buttonModal";
 import { LoadingButton } from "@mui/lab";
-import { useDispatch, useSelector } from "react-redux";
-import { setPlayMusic, setTrackItem, setTracks } from "@/services/redux/playlists/slice";
+import { Skeleton } from '@mui/material'
+import { useSelector } from "react-redux";
 
 interface FPProps {
   id: string
+}
+
+const HandleSkeleton = () => {
+  return (
+    <div className="w-full flex justify-center items-center">
+      <Skeleton variant="rounded" width={100} height={200} />
+      <Skeleton variant="rounded" width={825} height={260} />
+      <Skeleton variant="rounded" width={100} height={200} />
+    </div>
+  )
 }
 
 function FollowedPlaylist(props: FPProps) {
@@ -48,27 +57,24 @@ function FollowedPlaylist(props: FPProps) {
 }
 
 export default function SlideHome() {
+  const { user } = useSelector((r: any) => r.userReducer)
   const [playlists, setPlaylists] = React.useState<[]>([])
-  const { currentTrack } = useSelector((r: any) => r.playlistsReducer)
-  const dispatch = useDispatch()
+  const [loading, setLoading] = React.useState(true)
 
   const handleClickPlay = async (e: any, id: string) => {
     e.preventDefault()
 
-    await GetPlaylist(id).then(data => {
-      dispatch(setTracks(data.tracks.items))
-      dispatch(setTrackItem(data.tracks.items[0].track))
-      currentTrack.setAttribute('src', data.tracks.items[0]?.track.preview_url)
-      currentTrack.play()
-      dispatch(setPlayMusic(true))
-    })
+    await handlePlayItem(id as string, 'playlist')
   }
 
   const handleSlideItems = React.useCallback(async () => {
-    await GetFeaturedPlaylists().then(data => {
-      setPlaylists(data)
-    })
-  }, [])
+    if (user) {
+      await GetFeaturedPlaylists().then(data => {
+        setPlaylists(data)
+        setLoading(false)
+      })
+    }
+  }, [user])
 
   React.useEffect(() => {
     handleSlideItems()
@@ -76,34 +82,39 @@ export default function SlideHome() {
 
   return (
     <div id="slideHome">
-      <Slider
-        className="center"
-        centerMode={true}
-        infinite={true}
-        centerPadding="-48px"
-        slidesToShow={3}
-        speed={500}
-      >
-        {playlists &&
-          playlists.map((item: any, key: any) => (
-            <div key={key}>
-              <div className="bg-white w-full rounded-xl overflow-hidden grid grid-cols-playlistSlide gap-5 items-center" key={key}>
-                <div className="w-full h-60 flex-shrink-0">
-                  <Image src={item.images[0].url} alt="Cover" width={240} height={240} className="w-full h-full" />
-                </div>
-                <div className="content pr-6">
-                  <h1 className="font-bold text-36">{item.name}</h1>
-                  <p className="text-16">{item.description}</p>
-                  <div className="flex mt-6 gap-4">
-                    <ButtonModal text="Play" color="bg-orange-50 text-white font-bold" type="button" onClick={e => handleClickPlay(e, item.id)}/>
-                    <FollowedPlaylist id={item.id} />
+      {loading ?
+        <HandleSkeleton />
+        :
+        <Slider
+          className="center"
+          centerMode={true}
+          infinite={true}
+          centerPadding="-48px"
+          slidesToShow={3}
+          speed={500}
+        >
+          {playlists &&
+            playlists.map((item: any, key: any) => (
+              <div key={key}>
+                <div className="bg-white w-full rounded-xl overflow-hidden grid grid-cols-playlistSlide gap-5 items-center" key={key}>
+                  <div className="w-full h-60 flex-shrink-0">
+                    <Image src={item.images[0].url} alt="Cover" width={240} height={240} className="w-full h-full" />
+                  </div>
+                  <div className="content pr-6">
+                    <h1 className="font-bold text-36">{item.name}</h1>
+                    <p className="text-16">{item.description}</p>
+                    <div className="flex mt-6 gap-4">
+                      <ButtonModal text="Play" color="bg-orange-50 text-white font-bold" type="button" onClick={e => handleClickPlay(e, item.id)} />
+                      <FollowedPlaylist id={item.id} />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
-        }
-      </Slider>
+            ))
+          }
+        </Slider>
+      }
+
     </div>
 
   )

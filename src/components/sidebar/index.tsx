@@ -28,10 +28,12 @@ export default function Sidebar() {
   const { userPlaylists, orderLibraryUser } = useSelector((r: any) => r.playlistsReducer)
 
   const getPlaylists = React.useCallback(async () => {
-    await GetUserPlaylists().then(data => {
-      setLoading(false)
-    })
-  }, [])
+    if (user) {
+      await GetUserPlaylists().then(() => {
+        setLoading(false)
+      })
+    }
+  }, [user])
 
   const handlePlaylistsSearch = React.useCallback(async () => {
     await SearchUserLibrary(textSearch).then(data => {
@@ -83,9 +85,9 @@ export default function Sidebar() {
             <Link className="rounded-50p overflow-hidden w-13 h-13 bg-gray-20 flex justify-center items-center" href="">
               <img src={imageUser ? imageUser : UserIcon} alt="Avatar" width={100} height={100} className="w-full h-full object-cover" />
             </Link>
-            <button className="">
+            <Link href={'/liked-tracks'}>
               <Image src={HeartIcon} alt="Favorites" />
-            </button>
+            </Link>
           </div>
         </div>
         <div className="rounded-t-xl bg-white pt-6 w-full mt-2">

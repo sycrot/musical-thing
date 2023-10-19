@@ -5,17 +5,20 @@ import NavigateBackButton from "@/components/navigateBackButton"
 import { CheckIfUserFollowedArtist, FollowArtist, GetArtist, GetArtistAlbums, GetArtistRelatedArtists, GetArtistTopTracks, UnfollowArtist } from "@/services/spotify"
 import Image from "next/image"
 import { LoadingButton } from "@mui/lab"
+import { Skeleton } from '@mui/material'
 import ButtonPlayIcon from '@/assets/images/icons/play-button.svg'
 import HeartIcon from '@/assets/images/icons/heart-l-white.svg'
 import HeartLIcon from '@/assets/images/icons/heart.svg'
 import ShareIcon from '@/assets/images/icons/share-white.svg'
-import { handleCopyShare } from "@/utils/main"
+import { handleAnimationButtonLike, handleCopyShare } from "@/utils/main"
 import ItemMusic from "@/components/musicItem"
 import { PlaylistsSection } from "@/components/playlistsSections"
 import Slider from "react-slick"
 import ArtistItem from "@/components/artistItem"
+import { useSelector } from "react-redux"
 
 export default function ArtistPage() {
+  const { user } = useSelector((r: any) => r.userReducer)
   const [artist, setArtist] = React.useState<any>(undefined)
   const [topTracks, setTopTracks] = React.useState<[]>([])
   const [albums, setAlbums] = React.useState<[]>([])
@@ -24,12 +27,14 @@ export default function ArtistPage() {
   const [followed, setFollowed] = React.useState(false)
   const [slice, setSlice] = React.useState(5)
   const { id } = useParams()
-  const routerPathname = usePathname()
+  const buttonUnfollow = React.useRef<any>(null)
 
   const handleArtist = React.useCallback(async () => {
-    await GetArtist(id as string).then(data => {
-      setArtist(data)
-    })
+    if (user) {
+      await GetArtist(id as string).then(data => {
+        setArtist(data)
+      })
+    }
   }, [id])
 
   const handleFollowed = React.useCallback(async () => {
@@ -65,7 +70,11 @@ export default function ArtistPage() {
   }, [handleAlbums, handleArtist, handleFollowed, handleRelatedArtists, handleTopTracks])
 
   const handleFollowPlaylist = async () => {
-    await FollowArtist(id as string, 'artist', setLoading, setFollowed)
+    await FollowArtist(id as string, 'artist', setLoading, setFollowed).then(() => {
+      setTimeout(() => {
+        handleAnimationButtonLike(buttonUnfollow)
+      }, 100)
+    })
   }
 
   const handleUnfollowPlaylist = async () => {
@@ -81,7 +90,7 @@ export default function ArtistPage() {
   };
   return (
     <>
-      {artist &&
+      {artist ?
         <>
           <div className="px-5 pt-20 pb-10"
             style={{
@@ -104,7 +113,7 @@ export default function ArtistPage() {
                   :
                   followed ?
                     <button onClick={handleUnfollowPlaylist} className="w-9 h-9 drop-shadow-md">
-                      <Image src={HeartLIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
+                      <Image src={HeartLIcon} alt="heart" className="w-full h-full drop-shadow-icon" ref={buttonUnfollow}/>
                     </button>
                     :
                     <button onClick={handleFollowPlaylist} className="w-9 h-9">
@@ -113,8 +122,8 @@ export default function ArtistPage() {
                 }
 
 
-                <button onClick={() => handleCopyShare(routerPathname)}>
-                  <Image src={ShareIcon} alt="share" className="drop-shadow-icon"/>
+                <button onClick={() => handleCopyShare(window.location.href)}>
+                  <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
                 </button>
               </div>
             </div>
@@ -133,7 +142,7 @@ export default function ArtistPage() {
               </thead>
               <tbody>
                 {topTracks.slice(0, slice).map((item: any, index) => (
-                  <ItemMusic key={index} trackNumber={index + 1} id={item.id} name={item.name} uri={item.uri} image={item.album.images[0]?.url} artists={item.artists} album={item.album} duration_ms={item.duration_ms} />
+                  <ItemMusic key={index} trackNumber={index + 1} id={item.id} name={item.name} uri={item.uri} image={item.album.images[0]?.url} artists={item.artists} album={item.album} duration_ms={item.duration_ms} idPlaylist={id as string} typePlaylist="track" trackUri={item.uri} />
                 ))}
               </tbody>
             </table>
@@ -145,7 +154,7 @@ export default function ArtistPage() {
               }
             </div>
             <div className="mt-4">
-              <PlaylistsSection title="Discography" items={albums} />
+              <PlaylistsSection title="Discography" items={albums} loadedItems={false} />
             </div>
             <div className="mt-6" id="playlistSection">
               <h3 className="font-bold text-24">Related Artists</h3>
@@ -155,6 +164,27 @@ export default function ArtistPage() {
                 ))}
               </Slider>
             </div>
+          </div>
+        </>
+        :
+        <>
+          <div className="px-5 pt-20 pb-10">
+            <div className="mt-16">
+              <Skeleton variant="text" width={300} height={60} />
+              <div className="flex gap-3 mt-7 items-center">
+                <Skeleton variant="circular" width={70} height={70} />
+              </div>
+            </div>
+          </div>
+          <div className="px-5 mt-4">
+            <Skeleton variant="text" width={200} height={60} />
+            {
+              Array(5).fill('skeleton').map((item, index) => (
+                <div key={index} className="flex gap-1 mt-4">
+                  <Skeleton variant="rounded" height={64} className="w-full" />
+                </div>
+              ))
+            }
           </div>
         </>
       }

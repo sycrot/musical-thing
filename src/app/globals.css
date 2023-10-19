@@ -86,6 +86,7 @@ body {
   padding-top: 40px;
   transform: translateY(-30px);
 }
+
 #playlistSection .slick-next {
   right: 0;
   top: 0;
@@ -100,11 +101,13 @@ body {
   border-radius: 100%;
 }
 
-#playlistSection .slick-next::before, #playlistSection .slick-prev::before {
+#playlistSection .slick-next::before,
+#playlistSection .slick-prev::before {
   display: none;
 }
 
-#playlistSection .slick-next:hover, #playlistSection .slick-prev:hover {
+#playlistSection .slick-next:hover,
+#playlistSection .slick-prev:hover {
   background-color: rgba(113, 113, 113, .25);
 }
 
@@ -120,4 +123,48 @@ body {
   width: 28px;
   height: 28px;
   border-radius: 100%;
+}
+
+.css-14pt78w-MuiSlider-rail {
+  height: 6px;
+  opacity: 1;
+  background: #D9D9D9;
+}
+
+.css-eg0mwd-MuiSlider-thumb {
+  width: 10px;
+  height: 10px;
+  display: none;
+}
+
+.css-187mznn-MuiSlider-root:hover .css-eg0mwd-MuiSlider-thumb {
+  display: block;
+}
+
+.button-active, .button-repeat-one {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-active::after, .button-repeat-one::after {
+  content: '';
+  position: absolute;
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #EB6440;
+  bottom: 0;
+}
+
+.button-repeat-one::before {
+  content: '1';
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  color: #EB6440;
+  font-weight: bold;
+  font-size: 10px;
 }

@@ -92,7 +92,13 @@ export default function ModalAddToPlaylist(props: Props) {
           <h3 className="text-24 text-center font-bold">Add to playlist</h3>
         </div>
         <div className="mt-4 relative">
-          <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="Search playlist" />
+          <InputSearch
+            buttonClearSearch={buttonClearSearch}
+            setButtonClearSearch={setButtonClearSearch}
+            setLoading={setLoading}
+            setTextSearch={setTextSearch}
+            textSearch={textSearch}
+            placeholder="Search playlist" />
         </div>
         <button className="mt-4 border-b border-gray-30 pb-2 w-full text-left text-gray-50 hover:text-gray-60" onClick={handleCreatePlaylist}>
           <p className="font-bold">Create playlist</p>
@@ -105,7 +111,13 @@ export default function ModalAddToPlaylist(props: Props) {
                 <p className="pl-1">0 results for <b>"{textSearch}"</b></p>
               }
               {playlists?.map((item: any) => (
-                <SidebarPlaylistItem id={item.id} by={item.owner.display_name} image={item.images[0]?.url} title={item.name} key={item.id} onClick={e => handleClick(e, item.id, item.name)} />
+                <SidebarPlaylistItem
+                  id={item.id}
+                  by={item.owner.display_name}
+                  image={item.images[0]?.url}
+                  title={item.name}
+                  key={item.id}
+                  onClick={e => handleClick(e, item.id, item.name)} />
               ))}
             </>
           }

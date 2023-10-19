@@ -6,7 +6,8 @@ import React from "react"
 export type TMenu = {
   name: string,
   onClick: () => void,
-  icon?: string
+  icon?: string,
+  remove?: boolean
 }
 
 interface Props {
@@ -21,6 +22,7 @@ export default function MenuDropdown(props: Props) {
     <Menu menuButton={<MenuButton className={`flex items-center ${props.buttonStyle ? props.buttonStyle : 'ml-3 mr-3'}`} onClick={e => e.preventDefault()}>{props.button}</MenuButton>}>
       <div className={`absolute p-1 bg-white shadow-card-15 rounded-4px z-10 w-max ${props.menuItemsStyle}`}>
         {props.items.map((item, key) => (
+          !item.remove &&
           <MenuItem key={key}>
             <button className="flex justify-between items-center w-full p-2 py-1 hover:bg-gray-10 hover:font-medium rounded-4px cursor-pointer" onClick={e => {
               e.preventDefault()

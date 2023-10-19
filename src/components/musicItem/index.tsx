@@ -1,18 +1,20 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
 import Image from "next/image"
-import React from "react"
+import React, { useRef } from "react"
 import HeartIcon from '@/assets/images/icons/heart-gray.svg'
 import HeartLIcon from '@/assets/images/icons/heart-l-gray.svg'
 import MenuIcon from '@/assets/images/icons/menu-points.svg'
 import PlayIcon from '@/assets/images/icons/play-music.svg'
 import ShareIcon from '@/assets/images/icons/share.svg'
 import MenuDropdown, { TMenu } from "../menuDropdown"
-import { handleCopyShare } from "@/utils/main"
+import { handleAnimationButtonLike, handleCopyShare } from "@/utils/main"
 import ModalAddToPlaylist from "../modalAddToPlaylist"
-import { checkIfUserFollowed, handleFollow, handleUnfollow } from "@/services/spotify"
+import { GetAlbum, GetPlaylist, checkIfUserFollowed, handleFollow, handlePlayItem, handleRemovePlaylistItem, handleUnfollow } from "@/services/spotify"
 import { LoadingButton } from "@mui/lab"
 import Link from "next/link"
+import { setCurrentPlaylistId, setPlayMusic, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
+import { useDispatch, useSelector } from "react-redux"
 
 interface Props {
   id: string
@@ -23,20 +25,45 @@ interface Props {
   artists: any
   album: any
   duration_ms: any
+  idPlaylist: string
+  typePlaylist: string
+  trackUri: string
+  playlistName?: string
 }
 
 export default function ItemMusic(props: Props) {
+  const { user } = useSelector((r: any) => r.userReducer)
+  const { userPlaylists } = useSelector((r: any) => r.playlistsReducer)
   const [actions, setActions] = React.useState(false)
   const [modalAddToPlaylists, setModalAddToPlaylist] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [liked, setLiked] = React.useState(false)
+  const [removeTrack, setRemoveTrack] = React.useState(false)
+  const dispatch = useDispatch()
+  const buttonUnfollowTrack = useRef<any>(null)
+
+  const handleFollowedTrack = React.useCallback(async () => {
+    await checkIfUserFollowed('me/tracks/contains', props.id).then(data => setLiked(data))
+  }, [props.id])
+  
+  const handleCheckUserPlaylist = React.useCallback(() => {
+    let list: any = []
+
+    userPlaylists?.map((item: any) => {
+      if (item.owner.id === user.id) {
+        list.push(item)
+      }
+    })
+
+    const listFilter = list.some((el: any) => el.id === props.idPlaylist)
+
+    setRemoveTrack(!listFilter)
+  }, [props.idPlaylist, user?.id, userPlaylists])
 
   React.useEffect(() => {
-    const handleFollowedPlaylist = async () => {
-      await checkIfUserFollowed('me/tracks/contains', props.id).then(data => setLiked(data))
-    }
-    handleFollowedPlaylist()
-  }, [props.id])
+    handleFollowedTrack()
+    handleCheckUserPlaylist()
+  }, [handleFollowedTrack, handleCheckUserPlaylist])
 
   const getDuration = (duration: string) => {
     const date = new Date(duration)
@@ -53,17 +80,62 @@ export default function ItemMusic(props: Props) {
     },
     {
       name: 'Share (Copy Link)',
-      onClick: () => handleCopyShare(props.name),
+      onClick: () => handleCopyShare(window.location.href),
       icon: ShareIcon
-    }
+    },
+    {
+      name: 'Remove track',
+      onClick: () => handleUnfollowTrackFromPlaylist(),
+      remove: removeTrack
+    },
   ]
 
   const handleFollowTrack = async () => {
-    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked)
+    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked).then(() => {
+      setTimeout(() => {
+        handleAnimationButtonLike(buttonUnfollowTrack)
+      }, 100)
+    })
   }
 
   const handleUnfollowTrack = async () => {
     await handleUnfollow('me/tracks', props.id, 'songs', setLoading, setLiked)
+  }
+
+  const handleUnfollowTrackFromPlaylist = async () => {
+    await handleRemovePlaylistItem(props.idPlaylist, props.playlistName || '', props.trackUri).then(() => {
+      window.location.reload()
+    })
+  }
+
+  const handleClickPlay = async (e: any) => {
+    e.preventDefault()
+
+    switch (props.typePlaylist) {
+      case 'playlist':
+        await GetPlaylist(props.idPlaylist).then(data => {
+          dispatch(setCurrentPlaylistId(props.idPlaylist))
+          dispatch(setTracksPlaylist(data.tracks.items))
+
+          const filterTrack = data.tracks.items.findIndex((el: any) => el.track.id === props.id)
+
+          dispatch(setTrackNumber(filterTrack))
+          dispatch(setPlayMusic(true))
+        })
+        break;
+      case 'album':
+        await GetAlbum(props.idPlaylist).then(data => {
+          dispatch(setCurrentPlaylistId(props.idPlaylist))
+          dispatch(setTracksPlaylist(data.tracks.items))
+          const filterTrack = data.tracks.items.findIndex((el: any) => el.id === props.id)
+          dispatch(setTrackNumber(filterTrack))
+          dispatch(setPlayMusic(true))
+        })
+        break;
+      case 'track':
+        await handlePlayItem(props.id, 'track')
+    }
+
   }
 
   return (
@@ -72,7 +144,7 @@ export default function ItemMusic(props: Props) {
       <tr className="cursor-pointer hover:bg-green-10" onMouseOver={() => setActions(true)} onMouseOut={() => setActions(false)}>
         <td className="pl-5 rounded-tl-5px rounded-bl-5px">
           {actions ?
-            <Image src={PlayIcon} alt="play" />
+            <button onClick={handleClickPlay}><Image src={PlayIcon} alt="play" /></button>
             :
             <p className="text-gray-50 w-15p">{props.trackNumber}</p>
           }
@@ -104,7 +176,7 @@ export default function ItemMusic(props: Props) {
                   :
                   liked ?
                     <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                      <Image src={HeartLIcon} alt="Heart" className="w-full h-full" />
+                      <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollowTrack}/>
                     </button>
                     :
                     <button className="w-6 h-6" onClick={handleFollowTrack}>

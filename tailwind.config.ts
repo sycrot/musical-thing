@@ -94,12 +94,50 @@ const config: Config = {
         buttonPlaylist: {
           '0%': { transform: 'translateY(60px)' },
           '100%': { transform: 'translateY(0)' },
-        }
+        },
+        slideText: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        },
+        buttonFollow: {
+          '0%': { 
+            transform: 'scale(1) rotate(0)'
+          },
+          '10%': { 
+            transform: 'rotate(-0.04turn)'
+          },
+          '20%': { 
+            transform: 'rotate(0.04turn)'
+          },
+          '30%': { 
+            transform: 'scale(1.2) rotate(-0.04turn)'
+          },
+          '40%': { 
+            transform: 'scale(1.2) rotate(0.04turn)'
+          },
+          '50%': { 
+            transform: 'scale(1.2) rotate(-0.04turn)'
+          },
+          '60%': { 
+            transform: 'scale(1.2) rotate(0.04turn)'
+          },
+          '70%': { 
+            transform: 'rotate(-0.04turn)'
+          },
+          '80%': { 
+            transform: 'rotate(0.04turn)'
+          },
+          '100%': { 
+            transform: 'scale(1) rotate(0)'
+          },
+        },
       },
       animation: {
         scale: 'scale .2s ease-in-out',
         scaleReverse: 'scaleReverse .2s ease-in-out',
         buttonPlaylist: 'buttonPlaylist .2s ease-in-out',
+        slideText: 'slideText 8s infinite linear',
+        buttonFollow: 'buttonFollow .8s ease-in-out',
       },
       boxShadow: {
         'card-15': '1px 1px 6px rgba(0,0,0,.15)'
@@ -107,7 +145,9 @@ const config: Config = {
       gridTemplateColumns: {
         'playlist': '3.5rem auto',
         'musicItem': '2.75rem auto',
-        'playlistSlide': '15rem auto'
+        'playlistSlide': '15rem auto',
+        'player': '7.5rem auto auto',
+        'playlistPage': '10.625rem auto'
       },
       padding: {
         '10p': '10px',
@@ -117,6 +157,9 @@ const config: Config = {
       },
       dropShadow: {
         'icon': '0 1px 4px rgba(0,0,0,.7)'
+      },
+      inset: {
+        '34': '8.2rem'
       }
     },
   },

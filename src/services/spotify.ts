@@ -1,7 +1,7 @@
 'use client'
 import axios from 'axios';
 import { login } from './redux/user/slice';
-import { setOrderLibraryUser, setUserPlaylists } from './redux/playlists/slice';
+import { setCurrentPlaylistId, setOrderLibraryUser, setPlayMusic, setTrackCover, setTrackNumber, setTracksPlaylist, setUserPlaylists } from './redux/playlists/slice';
 import store from './redux/store';
 import { ShowPopup } from './redux/popup/slice';
 
@@ -22,7 +22,6 @@ export async function GetUser() {
       handleErrors(err)
     })
   }
-
 }
 
 export async function GetUserPlaylists() {
@@ -607,11 +606,11 @@ export async function getRecentlyPlayedTrack() {
   return response
 }
 
-export async function getAvailableDevices() {
+export async function GetTrack(id: string) {
   let response: any = []
 
   if (window.localStorage.token) {
-    await axios.get(`${path}/me/player/devices`,
+    await axios.get(`${path}/tracks/${id}`,
       {
         headers
       }).then(({ data }) => {
@@ -622,6 +621,64 @@ export async function getAvailableDevices() {
   }
 
   return response
+}
+
+export async function handlePlayItem(id: string, type: string) {
+  switch (type) {
+    case 'playlist':
+      await GetPlaylist(id).then(data => {
+        store.dispatch(setCurrentPlaylistId(id))
+        store.dispatch(setTracksPlaylist(data.tracks.items))
+        store.dispatch(setPlayMusic(true))
+        store.dispatch(setTrackNumber(0))
+      })
+      break;
+    case 'album':
+      await GetAlbum(id).then(data => {
+        store.dispatch(setCurrentPlaylistId(id))
+        store.dispatch(setTrackCover(data.images[0]))
+        store.dispatch(setTracksPlaylist(data.tracks.items))
+        store.dispatch(setPlayMusic(true))
+        store.dispatch(setTrackNumber(0))
+      })
+      break;
+    case 'track':
+      await GetTrack(id).then(data => {
+        let track: any = []
+        track.push(data)
+        store.dispatch(setTracksPlaylist(track))
+        store.dispatch(setPlayMusic(true))
+        store.dispatch(setTrackNumber(0))
+      })
+      break;
+  }
+
+}
+
+export async function handleRemovePlaylistItem(
+  playlist_id: string,
+  playlist: string,
+  trackUri: string) {
+  if (window.localStorage.token) {
+    await axios.delete(`${path}/playlists/${playlist_id}/tracks`,
+      {
+        headers,
+        data: {
+          tracks: [
+            {
+              uri: trackUri
+            }
+          ]
+        }
+      }).then(() => {
+        store.dispatch(ShowPopup({
+          text: `Remove track from ${playlist}`,
+          show: true
+        }))
+      }).catch(err => {
+        handleErrors(err)
+      })
+  }
 }
 
 

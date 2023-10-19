@@ -1,55 +1,143 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
-import { getRecentlyPlayedTrack } from "@/services/spotify"
+import { GetPlaylist, checkIfUserFollowed, getRecentlyPlayedTrack, handleFollow, handleUnfollow } from "@/services/spotify"
 import Link from "next/link"
-import React from "react"
+import React, { useRef } from "react"
 import HeartIcon from '@/assets/images/icons/heart-gray.svg'
+import HeartLIcon from '@/assets/images/icons/heart-l-gray.svg'
 import PlayIcon from '@/assets/images/icons/play-button.svg'
 import PauseIcon from '@/assets/images/icons/pause-button.svg'
 import PrevIcon from '@/assets/images/icons/prev-button.svg'
 import AleatoryIcon from '@/assets/images/icons/aleatory-icon.svg'
 import RepeatIcon from '@/assets/images/icons/repeat.svg'
+import AddToPlaylistIcon from '@/assets/images/icons/add-to-playlist.svg'
+import SoundIcon from '@/assets/images/icons/sound.svg'
+import SoundOffIcon from '@/assets/images/icons/sound-off.svg'
 import Image from "next/image"
-import { Slider } from "@mui/material"
+import { Skeleton, Slider } from "@mui/material"
 import { useDispatch, useSelector } from "react-redux"
-import { setCurrentTrack, setPlayMusic, setTrackItem, setTrackNumber, setTracks } from "@/services/redux/playlists/slice"
+import { setCurrentTrack, setPlayMusic, setTrackItem, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
+import { LoadingButton } from "@mui/lab"
+import ModalAddToPlaylist from "../modalAddToPlaylist"
+import { handleAnimationButtonLike } from "@/utils/main"
+
+const HandleSkeleton = () => {
+  return (
+    <>
+      <div className="flex gap-2 items-center w-1/4">
+        <Skeleton variant="rounded" width={120} height={120} />
+        <div className="w-3/4">
+          <Skeleton variant="text" sx={{ fontSize: '16px' }} />
+          <Skeleton variant="text" sx={{ width: '60%', fontSize: '16px' }} />
+        </div>
+      </div>
+      <div className="w-1/2 flex flex-col items-center">
+        <div className="flex gap-5 items-center">
+          <Skeleton variant="circular" width={30} height={30} />
+          <Skeleton variant="circular" width={30} height={30} />
+          <Skeleton variant="circular" width={50} height={50} />
+          <Skeleton variant="circular" width={30} height={30} />
+          <Skeleton variant="circular" width={30} height={30} />
+        </div>
+        <Skeleton variant="rounded" width={480} height={12} className="mt-5" />
+      </div>
+      <div className="flex w-1/4 gap-2 items-center justify-end">
+        <Skeleton variant="circular" width={30} height={30} />
+        <Skeleton variant="circular" width={30} height={30} />
+        <Skeleton variant="rounded" width={142} height={12} />
+      </div>
+    </>
+
+  )
+}
 
 export default function Player() {
-  const { tracks, currentTrack, playMusic, trackItem, trackNumber } = useSelector((r: any) => r.playlistsReducer)
+  const { tracksPlaylist, currentTrack, playMusic, trackItem, trackNumber, currentPlaylistId, trackCover } = useSelector((r: any) => r.playlistsReducer)
+  const { user } = useSelector((r: any) => r.userReducer)
   const [trackCurrentTime, setTrackCurrentTime] = React.useState(0)
   const [trackPercent, setTrackPercent] = React.useState(0)
+  const [trackDuration, setTrackDuration] = React.useState(0)
+  const [aleatory, setAleatory] = React.useState(false)
+  const [repeat, setRepeat] = React.useState('off')
   const dispatch = useDispatch()
+  const titleRef = useRef<any>(null)
+  const artistsRef = useRef<any>(null)
+  const buttonPlayPauseRef = useRef<any>(null)
+  const buttonUnfollow = useRef<any>(null)
+  const [liked, setLiked] = React.useState(false)
+  const [loading, setLoading] = React.useState(false)
+  const [loadingData, setLoadingData] = React.useState(true)
+  const [modalAddToPlaylists, setModalAddToPlaylist] = React.useState(false)
+  const [volume, setVolume] = React.useState(100)
 
   const handleRecentTrack = React.useCallback(async () => {
-    await getRecentlyPlayedTrack().then(data => {
-      dispatch(setTrackItem(data.items[0]?.track))
-      dispatch(setCurrentTrack(new Audio(data.items[0]?.track.preview_url)))
-    })
-  }, [])
+    setLoadingData(true)
+    if (user) {
+      await getRecentlyPlayedTrack().then(data => {
+        dispatch(setTrackItem(data.items[0]?.track))
+        dispatch(setCurrentTrack(new Audio(data.items[0]?.track.preview_url)))
+        setLoadingData(false)
+      })
+    }
+  }, [user])
 
   const handleCurrentTrackNumber = React.useCallback(() => {
-    if (tracks) {
-      dispatch(setTrackItem(tracks[trackNumber]?.track))
+    if (tracksPlaylist) {
+      const item = tracksPlaylist[trackNumber]?.track ?? tracksPlaylist[trackNumber]
+      const url = tracksPlaylist[trackNumber]?.track?.preview_url ?? tracksPlaylist[trackNumber]?.preview_url
+      dispatch(setTrackItem(item))
       currentTrack.load()
-      currentTrack.setAttribute('src', tracks[trackNumber]?.track.preview_url)
+      currentTrack.setAttribute('src', url)
       if (playMusic) handlePlay()
     }
-  }, [trackNumber])
+  }, [trackNumber, tracksPlaylist])
+
+  const handleTitleSlide = React.useCallback(() => {
+    if (trackItem) {
+      if (trackItem.name.length >= 14) {
+        titleRef.current.classList.add('animate-slideText')
+      } else {
+        titleRef.current.classList.remove('animate-slideText')
+      }
+
+      if (trackItem.artists.length >= 2) {
+        artistsRef.current.classList.add('animate-slideText')
+      } else {
+        artistsRef.current.classList.remove('animate-slideText')
+      }
+    }
+  }, [])
+
+  const handleCheckFollowedTrack = React.useCallback(async () => {
+    if (trackItem) {
+      await checkIfUserFollowed('me/tracks/contains', trackItem.id).then(data => setLiked(data))
+    }
+  }, [])
 
   React.useEffect(() => {
-    if (tracks === null) {
+    if (tracksPlaylist === null) {
       handleRecentTrack()
     }
     handleCurrentTrackNumber()
-  }, [handleRecentTrack, tracks, handleCurrentTrackNumber])
+    handleTitleSlide()
+    handleCheckFollowedTrack()
+  }, [handleRecentTrack, tracksPlaylist, handleCurrentTrackNumber, handleCheckFollowedTrack, handleTitleSlide])
 
   React.useEffect(() => {
-    if (tracks && tracks.length > 0) {
+    if (tracksPlaylist && tracksPlaylist.length > 1) {
       if (trackPercent === 100) {
-        handleNext()
+        if (repeat === 'ever') {
+          handlePlay()
+        }
+        if (repeat === 'one') {
+          handleRepeatOne()
+        }
+        if (repeat === 'off') {
+          handleNext()
+        }
       }
     }
-  }, [trackPercent])
+  }, [trackPercent, repeat])
 
   const handleTimeUpdate = () => {
     const currentPercentage = (currentTrack.currentTime / currentTrack.duration) * 100
@@ -61,9 +149,21 @@ export default function Player() {
     handleTimeUpdate()
   })
 
+  currentTrack?.addEventListener('loadedmetadata', () => {
+    setTrackDuration(currentTrack?.duration)
+  })
+
   const handlePlay = async () => {
     currentTrack.play()
     dispatch(setPlayMusic(true))
+  }
+
+  const handleRepeatOne = () => {
+    handlePlay()
+
+    setTimeout(() => {
+      setRepeat('off')
+    }, 1)
   }
 
   const handlePause = () => {
@@ -72,7 +172,7 @@ export default function Player() {
   }
 
   const handleNext = () => {
-    if (trackNumber === tracks.length) {
+    if (trackNumber === tracksPlaylist?.length - 1) {
       dispatch(setTrackNumber(0))
     } else {
       dispatch(setTrackNumber(trackNumber + 1))
@@ -83,7 +183,7 @@ export default function Player() {
 
   const handlePrev = () => {
     if (trackNumber === 0) {
-      dispatch(setTrackNumber(tracks.length - 1))
+      dispatch(setTrackNumber(tracksPlaylist.length - 1))
     } else {
       dispatch(setTrackNumber(trackNumber - 1))
     }
@@ -91,23 +191,42 @@ export default function Player() {
     handlePlay()
   }
 
-  const handleAleatory = (e: any) => {
+  const handleAleatory = async (e: any) => {
     e.preventDefault()
-    let items: any = [...tracks]
-    let newItems: any = []
-    newItems.push(tracks[0])
+    if (aleatory) {
+      let trackId = ''
+      await GetPlaylist(currentPlaylistId).then(data => {
+        data.tracks.items.forEach((item: any) => {
+          if (item.track?.id === tracksPlaylist[trackNumber].track.id) {
+            trackId = item.track.id
+          }
+        })
 
-    items.sort(() => Math.random() - 0.5).forEach((item: any) => {
-      newItems.push(item)
-    })
+        dispatch(setTracksPlaylist(data.tracks.items))
 
-    var tracksAleatory = newItems.filter(function (item: any) {
-      return !newItems[JSON.stringify(item)] && (newItems[JSON.stringify(item)] = true)
-    })
+        const filterTrack = data.tracks.items.findIndex((el: any) => el.track.id === trackId)
+        dispatch(setTrackNumber(filterTrack))
+      })
 
-    dispatch(setTracks(tracksAleatory))
+    } else {
+      let items: any = [...tracksPlaylist]
+      let newItems: any = []
+      newItems.push(tracksPlaylist[trackNumber])
+
+      items.sort(() => Math.random() - 0.5).forEach((item: any) => {
+        newItems.push(item)
+      })
+
+      var tracksAleatory = newItems.filter(function (item: any) {
+        return !newItems[JSON.stringify(item)] && (newItems[JSON.stringify(item)] = true)
+      })
+
+      dispatch(setTracksPlaylist(tracksAleatory))
+      dispatch(setTrackNumber(0))
+    }
+
+    setAleatory(!aleatory)
   }
-
 
   const handleDuration = (duration: number) => {
     const date = new Date(duration)
@@ -125,46 +244,166 @@ export default function Player() {
     setTrackPercent(currentPercent)
   }
 
+  const handleRepeat = (e: any) => {
+    e.preventDefault()
+
+
+    switch (repeat) {
+      case 'one':
+        setRepeat('off')
+        break;
+      case 'ever':
+        setRepeat('one')
+        break;
+      case 'off':
+        setRepeat('ever')
+        break;
+      default:
+        setRepeat('')
+    }
+  }
+
+  const handleFollowTrack = async () => {
+    await handleFollow('me/tracks', trackItem.id, 'songs', setLoading, setLiked).then(() => {
+      setTimeout(() => {
+        handleAnimationButtonLike(buttonUnfollow)
+      }, 100)
+    })
+  }
+
+  const handleUnfollowTrack = async () => {
+    await handleUnfollow('me/tracks', trackItem.id, 'songs', setLoading, setLiked)
+  }
+
+  const handleVolume = (e: any) => {
+    if (currentTrack) {
+      setVolume(e.target.value)
+      currentTrack.volume = e.target.value / 100
+    }
+  }
+
+  const handleMute = () => {
+    if (currentTrack) {
+      if (volume === 0) {
+        currentTrack.volume = 1
+        setVolume(100)
+      } else {
+        currentTrack.volume = 0
+        setVolume(0)
+      }
+    }
+  }
+
+  const handleAnimationPlayPause = () => {
+    if (buttonPlayPauseRef?.current.className.includes('scale-90')) {
+      buttonPlayPauseRef?.current.classList.remove('scale-90')
+    } else {
+      buttonPlayPauseRef?.current.classList.add('scale-90')
+    }
+  }
+
   return (
-    <div className="w-full h-full pt-6p">
-      <div className="w-full bg-white rounded-tr-xl rounded-tl-xl p-4 h-full flex items-center justify-between">
-        {trackItem &&
-          <div className="flex items-center gap-2 w-1/4">
-            <div className="rounded-5px overflow-hidden w-120 h-120">
-              <img src={trackItem.album?.images[0]?.url} alt={trackItem.name} />
-            </div>
-            <div className="truncate">
-              <p className="text-18 font-bold truncate">{trackItem.name}</p>
-              {trackItem.artists?.map((item: any, key: any) => (
-                <Link href={`/artists/${item.id}`} key={key}><p className="text-16 font-normal text-gray-50 truncate hover:underline">{item.name} </p></Link>
-              ))}
-            </div>
-            <button className="ml-3"><Image src={HeartIcon} alt="Like" /></button>
-          </div>
-        }
-        <div className="flex flex-col items-center w-1/2">
-          <div className="flex gap-5">
-            <button className={`${tracks === null && 'pointer-events-none opacity-60'}`} onClick={handleAleatory}><Image src={AleatoryIcon} alt="Aleatory" /></button>
-            <button onClick={handlePrev} className={`${tracks === null && 'pointer-events-none opacity-60'}`}><Image src={PrevIcon} alt="prev" /></button>
-            {playMusic ?
-              <button onClick={handlePause} className="w-13 h-13"><Image src={PauseIcon} alt="pause" className="w-full h-full" /></button>
-              :
-              <button onClick={handlePlay} className="w-13 h-13"><Image src={PlayIcon} alt="play" className="w-full h-full" /></button>
-            }
+    <>
+      <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} idMusic={trackItem?.uri} name={trackItem?.name} />
+      <div className="w-full h-full pt-6p">
+        <div className="w-full bg-white rounded-tr-xl rounded-tl-xl p-4 h-full flex items-center justify-between">
+          {loadingData ?
+            <HandleSkeleton /> :
+            <>
+              {trackItem &&
+                <div className="grid grid-cols-player items-center gap-2 w-1/4">
+                  <div className="rounded-5px overflow-hidden w-120 h-120">
+                    <img src={trackItem.album?.images[0]?.url ?? trackCover?.url} alt={trackItem.name} />
+                  </div>
+                  <div className="overflow-hidden w-full relative">
+                    <p ref={titleRef} className="text-18 font-bold block whitespace-nowrap absolute top-0">{trackItem.name}</p>
+                    <div ref={artistsRef} className="mt-7 flex gap-2">
+                      {trackItem.artists?.map((item: any, key: any) => (
+                        <Link href={`/artists/${item.id}`} key={key}><p className="text-16 font-normal text-gray-50 truncate hover:underline">{item.name} </p></Link>
+                      ))}
+                    </div>
+                  </div>
+                  {loading ?
+                    <LoadingButton loading className="w-6 h-6 min-w-0" />
+                    :
+                    liked ?
+                      <button className="w-6 h-6" onClick={handleUnfollowTrack}>
+                        <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollow}/>
+                      </button>
+                      :
+                      <button className="w-6 h-6" onClick={handleFollowTrack}>
+                        <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
+                      </button>
+                  }
 
-            <button className={`rotate-180 ${tracks === null && 'pointer-events-none opacity-60'}`} onClick={handleNext}><Image src={PrevIcon} alt="prev" /></button>
-            <button className={`${tracks === null && 'pointer-events-none opacity-60'}`}><Image src={RepeatIcon} alt="repeat" /></button>
-          </div>
-          <div className="flex items-center mt-5 gap-2">
-            <span>{handleDuration(trackCurrentTime * 1000)}</span>
-            <Slider min={0} max={100} aria-label="Small" className="w-430 text-orange-50" value={trackPercent} onChange={handleChangePercentage} />
-            <span>{handleDuration(trackItem?.duration_ms)}</span>
-          </div>
-        </div>
-        <div className="w-1/4">
-
+                </div>
+              }
+              <div className="flex flex-col items-center w-1/2">
+                <div className="flex gap-5">
+                  <button
+                    className={`${tracksPlaylist === null || tracksPlaylist.length <= 1 && 'pointer-events-none opacity-60'} ${aleatory ? 'button-active' : 'grayscale'} hover:brightness-125`}
+                    onClick={handleAleatory}>
+                    <Image src={AleatoryIcon} alt="Aleatory" />
+                  </button>
+                  <button
+                    onClick={handlePrev}
+                    className={`${tracksPlaylist === null || tracksPlaylist.length <= 1 && 'pointer-events-none opacity-60'} hover:brightness-125`}>
+                    <Image src={PrevIcon} alt="prev" />
+                  </button>
+                  {playMusic ?
+                    <button
+                      onClick={handlePause}
+                      className="w-13 h-13 justify-center items-center"
+                      onMouseDown={handleAnimationPlayPause}
+                      onMouseUp={handleAnimationPlayPause}>
+                      <Image ref={buttonPlayPauseRef} src={PauseIcon} alt="pause" className="w-full h-full hover:scale-105" />
+                    </button>
+                    :
+                    <button
+                      onClick={handlePlay}
+                      className="w-13 h-13 justify-center items-center"
+                      onMouseDown={handleAnimationPlayPause}
+                      onMouseUp={handleAnimationPlayPause}>
+                      <Image ref={buttonPlayPauseRef} src={PlayIcon} alt="play" className="w-full h-full hover:scale-105" />
+                    </button>
+                  }
+                  <button
+                    className={`rotate-180 ${tracksPlaylist === null || tracksPlaylist.length <= 1 && 'pointer-events-none opacity-60'} hover:brightness-125`}
+                    onClick={handleNext}>
+                    <Image src={PrevIcon} alt="prev" />
+                  </button>
+                  <button className={`
+                  ${tracksPlaylist === null || tracksPlaylist.length <= 1 &&
+                    'pointer-events-none opacity-60'} 
+                    ${repeat === 'ever' && 'button-active'} 
+                    ${repeat === 'one' && 'button-repeat-one'}
+                    ${repeat === 'off' && 'grayscale'}
+                    hover:brightness-125`}
+                    onClick={handleRepeat}>
+                    <Image src={RepeatIcon} alt="repeat" />
+                  </button>
+                </div>
+                <div className="flex items-center mt-5 gap-2">
+                  <span>{handleDuration(trackCurrentTime * 1000)}</span>
+                  <Slider min={0} max={100} aria-label="Small" className="w-430 text-orange-50" value={trackPercent} onChange={handleChangePercentage} />
+                  <span>{handleDuration(trackDuration * 1000)}</span>
+                </div>
+              </div>
+              <div className="w-1/4">
+                <div className="flex gap-4 justify-end">
+                  <button onClick={() => setModalAddToPlaylist(true)} className="hover:brightness-125">
+                    <Image src={AddToPlaylistIcon} alt="Add to playlist" />
+                  </button>
+                  <button onClick={handleMute} className="hover:brightness-125">
+                    <Image src={volume === 0 ? SoundOffIcon : SoundIcon} alt="Sound" />
+                  </button>
+                  <Slider min={0} max={100} aria-label="Small" className="w-28 text-orange-50" value={volume} onChange={handleVolume} />
+                </div>
+              </div>
+            </>
+          }
         </div>
       </div>
-    </div>
+    </>
   )
 }

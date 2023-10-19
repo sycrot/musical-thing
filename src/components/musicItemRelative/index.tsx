@@ -3,10 +3,10 @@
 import Image from "next/image"
 import React from "react"
 import PlayIcon from '@/assets/images/icons/play-music.svg'
-import { checkIfUserFollowed, handleFollow, handleUnfollow } from "@/services/spotify"
+import { checkIfUserFollowed, handleFollow, handlePlayItem, handleUnfollow } from "@/services/spotify"
 import MenuDropdown, { TMenu } from "../menuDropdown"
 import ShareIcon from '@/assets/images/icons/share.svg'
-import { handleCopyShare } from "@/utils/main"
+import { handleAnimationButtonLike, handleCopyShare } from "@/utils/main"
 import Link from "next/link"
 import { LoadingButton } from "@mui/lab"
 import HeartIcon from '@/assets/images/icons/heart-gray.svg'
@@ -31,6 +31,7 @@ export default function MusicItemRelative(props: Props) {
   const [modalAddToPlaylists, setModalAddToPlaylist] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [liked, setLiked] = React.useState(false)
+  const buttonUnfollow = React.useRef<any>(null)
 
   React.useEffect(() => {
     const handleFollowedPlaylist = async () => {
@@ -54,17 +55,27 @@ export default function MusicItemRelative(props: Props) {
     },
     {
       name: 'Share (Copy Link)',
-      onClick: () => handleCopyShare(props.name),
+      onClick: () => handleCopyShare(props.uri),
       icon: ShareIcon
     }
   ]
 
   const handleFollowTrack = async () => {
-    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked)
+    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked).then(() => {
+      setTimeout(() => {
+        handleAnimationButtonLike(buttonUnfollow)
+      }, 100)
+    })
   }
 
   const handleUnfollowTrack = async () => {
     await handleUnfollow('me/tracks', props.id, 'songs', setLoading, setLiked)
+  }
+
+  const handleClickPlay = async (e: any) => {
+    e.preventDefault()
+
+    await handlePlayItem(props.id as string, 'track')
   }
 
   return (
@@ -76,7 +87,10 @@ export default function MusicItemRelative(props: Props) {
             <div className="w-11 h-11 overflow-hidden rounded-sm relative flex justify-center items-center">
               <img src={props.image} alt={props.name} />
               {actions &&
-                <Image src={PlayIcon} alt="play" className="absolute z-10 w-4 h-5" />
+                <button className="w-full h-full absolute z-10 top-0 left-0 flex justify-center items-center" onClick={handleClickPlay}>
+                  <Image src={PlayIcon} alt="play" className="w-4 h-5" />
+                </button>
+
               }
             </div>
             <div className="truncate">
@@ -98,7 +112,7 @@ export default function MusicItemRelative(props: Props) {
                     :
                     liked ?
                       <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                        <Image src={HeartLIcon} alt="Heart" className="w-full h-full" />
+                        <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollow}/>
                       </button>
                       :
                       <button className="w-6 h-6" onClick={handleFollowTrack}>
