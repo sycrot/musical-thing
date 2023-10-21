@@ -14,7 +14,7 @@ import AddToPlaylistIcon from '@/assets/images/icons/add-to-playlist.svg'
 import SoundIcon from '@/assets/images/icons/sound.svg'
 import SoundOffIcon from '@/assets/images/icons/sound-off.svg'
 import Image from "next/image"
-import { Skeleton, Slider } from "@mui/material"
+import { Skeleton, Slider, Tooltip } from "@mui/material"
 import { useDispatch, useSelector } from "react-redux"
 import { setAleatory, setCurrentTrack, setPlayMusic, setRepeat, setTrackItem, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
 import { LoadingButton } from "@mui/lab"
@@ -168,6 +168,7 @@ export default function Player() {
     handlePlay()
   }
 
+  /* Setup a return data from playlist type */
   const aleatoryData = (data: any) => {
     let trackId = ''
 
@@ -181,19 +182,20 @@ export default function Player() {
           trackId = item.track.id
         }
       }
-      
+
     })
 
     dispatch(setTracksPlaylist(data))
 
-    let filterTrack:any = null
+    let filterTrack: any = null
 
+    /* Check current track number */
     if (currentPlaylistType === 'album') {
       filterTrack = data.findIndex((el: any) => el.id === trackId)
     } else {
       filterTrack = data.findIndex((el: any) => el.track.id === trackId)
     }
-    
+
     dispatch(setTrackNumber(filterTrack))
   }
 
@@ -202,7 +204,7 @@ export default function Player() {
     if (aleatory) {
       switch (currentPlaylistType) {
         case 'playlist':
-          if (currentPlaylistId){
+          if (currentPlaylistId) {
             await GetPlaylist(currentPlaylistId).then(data => {
               aleatoryData(data.tracks.items)
             })
@@ -229,6 +231,7 @@ export default function Player() {
         newItems.push(item)
       })
 
+      /* Check tracks equals */
       var tracksAleatory = newItems.filter(function (item: any) {
         return !newItems[JSON.stringify(item)] && (newItems[JSON.stringify(item)] = true)
       })
@@ -407,12 +410,17 @@ export default function Player() {
               </div>
               <div className="w-1/4">
                 <div className="flex gap-4 justify-end">
-                  <button onClick={() => setModalAddToPlaylist(true)} className="hover:brightness-125">
-                    <Image src={AddToPlaylistIcon} alt="Add to playlist" />
-                  </button>
-                  <button onClick={handleMute} className="hover:brightness-125">
-                    <Image src={volume === 0 ? SoundOffIcon : SoundIcon} alt="Sound" />
-                  </button>
+                  <Tooltip title="Add to playlist" placement="top" arrow>
+                    <button onClick={() => setModalAddToPlaylist(true)} className="hover:brightness-125">
+                      <Image src={AddToPlaylistIcon} alt="Add to playlist" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title="Mute" placement="top" arrow>
+                    <button onClick={handleMute} className="hover:brightness-125">
+                      <Image src={volume === 0 ? SoundOffIcon : SoundIcon} alt="Sound" />
+                    </button>
+                  </Tooltip>
+
                   <Slider min={0} max={100} aria-label="Small" className="w-28 text-orange-50" value={volume} onChange={handleVolume} />
                 </div>
               </div>

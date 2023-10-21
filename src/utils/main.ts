@@ -1,6 +1,7 @@
 import { ShowPopup } from "@/services/redux/popup/slice"
 import store from "@/services/redux/store"
 
+/* Setup a animation close in modals */
 export function handleCloseAnimate(refBody: any, openClose: boolean, setOpenClose: (b: boolean) => void, animate: string) {
   refBody.current.classList.add(animate)
 
@@ -9,6 +10,7 @@ export function handleCloseAnimate(refBody: any, openClose: boolean, setOpenClos
   }, 0.1 * 1000)
 }
 
+/*  */
 export function handleImage(e: any, setPhotoURL: (value: string) => void, setPhoto: (photo: any) => void) {
   let r = new FileReader()
 

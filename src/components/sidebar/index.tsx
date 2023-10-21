@@ -15,7 +15,7 @@ import AddNewPlaylist from "../addNewPlaylist";
 import MenuDropdown, { TMenu } from "../menuDropdown";
 import CoverPlaylist from '@/assets/images/icons/playlist-cover.png'
 import { useSelector } from "react-redux";
-import { Skeleton } from "@mui/material";
+import { Skeleton, Tooltip } from "@mui/material";
 import { GetUserPlaylists, SearchUserLibrary, handleOrderLibrary } from "@/services/spotify";
 import { InputSearch } from "../inputSearch";
 
@@ -99,9 +99,12 @@ export default function Sidebar() {
               <Image src={LibraryIcon} alt="Icon library" />
               <p className="text-16 ml-1 text-green-50 font-bold">Your Library</p>
             </div>
-            <button className="w-5 h-5" onClick={() => setOpenNewPlaylist(!openNewPlaylist)}>
-              <Image src={PlusIcon} alt="Add to your library" />
-            </button>
+            <Tooltip title="Add new playlist" placement="top" arrow>
+              <button className="w-5 h-5" onClick={() => setOpenNewPlaylist(!openNewPlaylist)}>
+                <Image src={PlusIcon} alt="Add to your library" />
+              </button>
+            </Tooltip>
+
           </div>
           <div className="px-3 mt-6 flex justify-between">
             <div className="relative w-full">
