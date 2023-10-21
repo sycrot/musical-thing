@@ -96,7 +96,8 @@ const config: Config = {
           '100%': { transform: 'translateY(0)' },
         },
         slideText: {
-          '0%': { transform: 'translateX(100%)' },
+          '0%': { transform: 'translateX(0)' },
+          '30%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-100%)' },
         },
         buttonFollow: {
@@ -110,16 +111,16 @@ const config: Config = {
             transform: 'rotate(0.04turn)'
           },
           '30%': { 
-            transform: 'scale(1.2) rotate(-0.04turn)'
+            transform: 'scale(1.1) rotate(-0.04turn)'
           },
           '40%': { 
-            transform: 'scale(1.2) rotate(0.04turn)'
+            transform: 'scale(1.1) rotate(0.04turn)'
           },
           '50%': { 
-            transform: 'scale(1.2) rotate(-0.04turn)'
+            transform: 'scale(1.1) rotate(-0.04turn)'
           },
           '60%': { 
-            transform: 'scale(1.2) rotate(0.04turn)'
+            transform: 'scale(1.1) rotate(0.04turn)'
           },
           '70%': { 
             transform: 'rotate(-0.04turn)'
@@ -136,7 +137,7 @@ const config: Config = {
         scale: 'scale .2s ease-in-out',
         scaleReverse: 'scaleReverse .2s ease-in-out',
         buttonPlaylist: 'buttonPlaylist .2s ease-in-out',
-        slideText: 'slideText 8s infinite linear',
+        slideText: 'slideText 7s infinite linear',
         buttonFollow: 'buttonFollow .8s ease-in-out',
       },
       boxShadow: {

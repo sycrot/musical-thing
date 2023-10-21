@@ -10,7 +10,7 @@ import ButtonPlayIcon from '@/assets/images/icons/play-button.svg'
 import HeartIcon from '@/assets/images/icons/heart-l-white.svg'
 import HeartLIcon from '@/assets/images/icons/heart.svg'
 import ShareIcon from '@/assets/images/icons/share-white.svg'
-import { handleAnimationButtonLike, handleCopyShare } from "@/utils/main"
+import { handleCopyShare } from "@/utils/main"
 import ItemMusic from "@/components/musicItem"
 import { PlaylistsSection } from "@/components/playlistsSections"
 import Slider from "react-slick"
@@ -27,7 +27,6 @@ export default function ArtistPage() {
   const [followed, setFollowed] = React.useState(false)
   const [slice, setSlice] = React.useState(5)
   const { id } = useParams()
-  const buttonUnfollow = React.useRef<any>(null)
 
   const handleArtist = React.useCallback(async () => {
     if (user) {
@@ -70,11 +69,7 @@ export default function ArtistPage() {
   }, [handleAlbums, handleArtist, handleFollowed, handleRelatedArtists, handleTopTracks])
 
   const handleFollowPlaylist = async () => {
-    await FollowArtist(id as string, 'artist', setLoading, setFollowed).then(() => {
-      setTimeout(() => {
-        handleAnimationButtonLike(buttonUnfollow)
-      }, 100)
-    })
+    await FollowArtist(id as string, 'artist', setLoading, setFollowed)
   }
 
   const handleUnfollowPlaylist = async () => {
@@ -105,15 +100,15 @@ export default function ArtistPage() {
             <div className="mt-16">
               <h1 className="text-40 text-white font-bold text-shadow-sm shadow-gray-60">{artist.name}</h1>
               <div className="flex gap-5 mt-7 items-center">
-                <button>
+                {/* <button>
                   <Image src={ButtonPlayIcon} alt="play" />
-                </button>
+                </button> */}
                 {loading ?
                   <LoadingButton loading className="w-9 h-9 min-w-0" />
                   :
                   followed ?
                     <button onClick={handleUnfollowPlaylist} className="w-9 h-9 drop-shadow-md">
-                      <Image src={HeartLIcon} alt="heart" className="w-full h-full drop-shadow-icon" ref={buttonUnfollow}/>
+                      <Image src={HeartLIcon} alt="heart" className="w-full h-full drop-shadow-icon button-unfollow"/>
                     </button>
                     :
                     <button onClick={handleFollowPlaylist} className="w-9 h-9">

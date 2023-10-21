@@ -1,29 +1,33 @@
 'use client'
 import { handleCloseAnimate } from "@/utils/main";
-import { Modal } from "@mui/material";
+import { CircularProgress, Modal } from "@mui/material";
 import Image from "next/image";
 import XIcon from "@/assets/images/icons/x-notrounded.svg"
 import React from "react";
 import { InputSearch } from "../inputSearch";
-import { AddToPlaylist, CreatePlaylist, GetUserPlaylists, SearchUserLibrary } from "@/services/spotify";
-import { useSelector } from "react-redux";
+import { AddToPlaylist, CreatePlaylist, GetPlaylistItems, GetUserPlaylists, SearchUserLibrary } from "@/services/spotify";
+import { useDispatch, useSelector } from "react-redux";
 import SidebarPlaylistItem from "../sidebarPlaylistIem";
+import { ShowPopup } from "@/services/redux/popup/slice";
 
 interface Props {
   open: boolean
   setOpen: (open: boolean) => void
-  idMusic: string
+  uriMusic: string
   name: string
+  idMusic: string
 }
 
 export default function ModalAddToPlaylist(props: Props) {
   const [buttonClearSearch, setButtonClearSearch] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [loadingSearch, setLoadingSearch] = React.useState(false)
   const [textSearch, setTextSearch] = React.useState('')
   const { user } = useSelector((r: any) => r.userReducer)
   const { userPlaylists } = useSelector((r: any) => r.playlistsReducer)
   const refCard = React.useRef<any>(null)
   const [playlists, setPlaylists] = React.useState<any>([])
+  const dispatch = useDispatch()
 
   const handlePlaylistsSearch = React.useCallback(() => {
     let list: any = []
@@ -66,25 +70,53 @@ export default function ModalAddToPlaylist(props: Props) {
   }, [handleInitialPlaylists, handlePlaylistsSearch, textSearch.length])
 
   const handleBack = () => {
+    setLoading(false)
     handleCloseAnimate(refCard, props.open, props.setOpen, 'animate-scaleReverse')
   }
 
   const handleClick = async (e: any, playlist_id: string, name: string) => {
     e.preventDefault()
-    await AddToPlaylist(playlist_id, props.idMusic, name).then(() => {
-      handleBack()
+    let idEqual = false
+    setLoading(true)
+
+    await GetPlaylistItems(playlist_id).then(async (data: any) => {
+      data.map(async (item: any) => {
+        if (item.track.id === props.idMusic) {
+          idEqual = true
+        }
+      })
+
+      if (!idEqual) {
+        await AddToPlaylist(playlist_id, props.uriMusic, name).then(() => {
+          handleBack()
+        })
+      } else {
+        dispatch(ShowPopup({
+          text: 'Added to your library',
+          show: true
+        }))
+        handleBack()
+      }
     })
   }
 
   const handleCreatePlaylist = async () => {
-    await CreatePlaylist(user.id, props.name, true, '').then(() => {
-      handleBack()
+    setLoading(true)
+    await CreatePlaylist(user.id, props.name, true, '').then(async (data) => {
+      await AddToPlaylist(data.id, props.uriMusic, props.name).then(() => {
+        handleBack()
+      })
     })
   }
 
   return (
     <Modal open={props.open} onClose={handleBack} className="flex justify-center items-center">
-      <div className="bg-white rounded-xl p-5 w-full max-w-sm text-center animate-scale" ref={refCard}>
+      <div className="bg-white rounded-xl p-5 w-full max-w-sm text-center animate-scale relative" ref={refCard}>
+        {loading &&
+          <div className="absolute top-0 left-0 bg-black-10 flex justify-center items-center w-full h-full z-20">
+            <CircularProgress className="text-orange-50"/>
+          </div>
+        }
         <div className="text-center relative">
           <button onClick={handleBack} className="absolute left-0 top-1">
             <Image src={XIcon} alt="Close" className="mr-1" />
@@ -95,7 +127,7 @@ export default function ModalAddToPlaylist(props: Props) {
           <InputSearch
             buttonClearSearch={buttonClearSearch}
             setButtonClearSearch={setButtonClearSearch}
-            setLoading={setLoading}
+            setLoading={setLoadingSearch}
             setTextSearch={setTextSearch}
             textSearch={textSearch}
             placeholder="Search playlist" />
@@ -121,7 +153,6 @@ export default function ModalAddToPlaylist(props: Props) {
               ))}
             </>
           }
-
         </div>
       </div>
     </Modal>

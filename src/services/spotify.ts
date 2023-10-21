@@ -1,7 +1,7 @@
 'use client'
 import axios from 'axios';
 import { login } from './redux/user/slice';
-import { setCurrentPlaylistId, setOrderLibraryUser, setPlayMusic, setTrackCover, setTrackNumber, setTracksPlaylist, setUserPlaylists } from './redux/playlists/slice';
+import { setAleatory, setCurrentPlaylistId, setCurrentPlaylistType, setOrderLibraryUser, setPlayMusic, setRepeat, setTrackCover, setTrackNumber, setTracksPlaylist, setUserPlaylists } from './redux/playlists/slice';
 import store from './redux/store';
 import { ShowPopup } from './redux/popup/slice';
 
@@ -341,6 +341,7 @@ async function CustomPlaylistCoverImage(playlist_id: string, photo?: string) {
 
 
 export async function CreatePlaylist(user_id: string, name: string, _public: boolean, description: string, photo?: string) {
+  let res: any = []
   if (window.localStorage.token) {
     await axios.post(`${path}/users/${user_id}/playlists
     `, {
@@ -351,11 +352,14 @@ export async function CreatePlaylist(user_id: string, name: string, _public: boo
       {
         headers
       }).then(async (data: any) => {
+        res = data.data
         await CustomPlaylistCoverImage(data.data.id, photo)
       }).catch(err => {
         handleErrors(err)
       })
   }
+
+  return res
 }
 
 export async function AddToPlaylist(playlist_id: string, uri: string, playlistName: string) {
@@ -623,32 +627,51 @@ export async function GetTrack(id: string) {
   return response
 }
 
-export async function handlePlayItem(id: string, type: string) {
+export async function handlePlayItem(type: string, id?: string) {
+  store.dispatch(setAleatory(false))
+  store.dispatch(setRepeat('off'))
   switch (type) {
     case 'playlist':
-      await GetPlaylist(id).then(data => {
-        store.dispatch(setCurrentPlaylistId(id))
-        store.dispatch(setTracksPlaylist(data.tracks.items))
-        store.dispatch(setPlayMusic(true))
-        store.dispatch(setTrackNumber(0))
-      })
+      if (id) {
+        await GetPlaylist(id).then(data => {
+          store.dispatch(setCurrentPlaylistId(id))
+          store.dispatch(setTracksPlaylist(data.tracks.items))
+          store.dispatch(setPlayMusic(true))
+          store.dispatch(setTrackNumber(0))
+          store.dispatch(setCurrentPlaylistType('playlist'))
+        })
+      }
       break;
     case 'album':
-      await GetAlbum(id).then(data => {
-        store.dispatch(setCurrentPlaylistId(id))
-        store.dispatch(setTrackCover(data.images[0]))
-        store.dispatch(setTracksPlaylist(data.tracks.items))
-        store.dispatch(setPlayMusic(true))
-        store.dispatch(setTrackNumber(0))
-      })
+      if (id) {
+        await GetAlbum(id).then(data => {
+          store.dispatch(setCurrentPlaylistId(id))
+          store.dispatch(setTrackCover(data.images[0]))
+          store.dispatch(setTracksPlaylist(data.tracks.items))
+          store.dispatch(setPlayMusic(true))
+          store.dispatch(setTrackNumber(0))
+          store.dispatch(setCurrentPlaylistType('album'))
+        })
+      }
       break;
     case 'track':
-      await GetTrack(id).then(data => {
-        let track: any = []
-        track.push(data)
-        store.dispatch(setTracksPlaylist(track))
+      if (id) {
+        await GetTrack(id).then(data => {
+          let track: any = []
+          track.push(data)
+          store.dispatch(setTracksPlaylist(track))
+          store.dispatch(setPlayMusic(true))
+          store.dispatch(setTrackNumber(0))
+        })
+      }
+      break;
+    case 'favorites':
+      await getUserPlaylistLikedMusics().then(data => {
+        store.dispatch(setCurrentPlaylistId(null))
+        store.dispatch(setTracksPlaylist(data))
         store.dispatch(setPlayMusic(true))
         store.dispatch(setTrackNumber(0))
+        store.dispatch(setCurrentPlaylistType('favorites'))
       })
       break;
   }
@@ -683,11 +706,16 @@ export async function handleRemovePlaylistItem(
 
 
 const handleErrors = (err: any) => {
-  if (err.response.data.error.message === 'Invalid access token') {
+  if (err.response.status === 403) {
+    window.localStorage.removeItem('token')
     location.reload()
   }
 
-  if (err.response.data.error.message === 'The access token expired') {
+  if (err.response.data.error?.message === 'Invalid access token') {
+    location.reload()
+  }
+
+  if (err.response.data.error?.message === 'The access token expired') {
     window.localStorage.removeItem('token')
     location.reload()
   }

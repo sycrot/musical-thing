@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
-import { GetPlaylist, checkIfUserFollowed, getRecentlyPlayedTrack, handleFollow, handleUnfollow } from "@/services/spotify"
+import { GetAlbum, GetPlaylist, checkIfUserFollowed, getRecentlyPlayedTrack, getUserPlaylistLikedMusics, handleFollow, handleUnfollow } from "@/services/spotify"
 import Link from "next/link"
 import React, { useRef } from "react"
 import HeartIcon from '@/assets/images/icons/heart-gray.svg'
@@ -16,10 +16,9 @@ import SoundOffIcon from '@/assets/images/icons/sound-off.svg'
 import Image from "next/image"
 import { Skeleton, Slider } from "@mui/material"
 import { useDispatch, useSelector } from "react-redux"
-import { setCurrentTrack, setPlayMusic, setTrackItem, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
+import { setAleatory, setCurrentTrack, setPlayMusic, setRepeat, setTrackItem, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
 import { LoadingButton } from "@mui/lab"
 import ModalAddToPlaylist from "../modalAddToPlaylist"
-import { handleAnimationButtonLike } from "@/utils/main"
 
 const HandleSkeleton = () => {
   return (
@@ -52,18 +51,13 @@ const HandleSkeleton = () => {
 }
 
 export default function Player() {
-  const { tracksPlaylist, currentTrack, playMusic, trackItem, trackNumber, currentPlaylistId, trackCover } = useSelector((r: any) => r.playlistsReducer)
+  const { tracksPlaylist, currentTrack, playMusic, trackItem, trackNumber, currentPlaylistId, trackCover, currentPlaylistType, aleatory, repeat } = useSelector((r: any) => r.playlistsReducer)
   const { user } = useSelector((r: any) => r.userReducer)
   const [trackCurrentTime, setTrackCurrentTime] = React.useState(0)
   const [trackPercent, setTrackPercent] = React.useState(0)
   const [trackDuration, setTrackDuration] = React.useState(0)
-  const [aleatory, setAleatory] = React.useState(false)
-  const [repeat, setRepeat] = React.useState('off')
   const dispatch = useDispatch()
-  const titleRef = useRef<any>(null)
-  const artistsRef = useRef<any>(null)
   const buttonPlayPauseRef = useRef<any>(null)
-  const buttonUnfollow = useRef<any>(null)
   const [liked, setLiked] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [loadingData, setLoadingData] = React.useState(true)
@@ -92,22 +86,6 @@ export default function Player() {
     }
   }, [trackNumber, tracksPlaylist])
 
-  const handleTitleSlide = React.useCallback(() => {
-    if (trackItem) {
-      if (trackItem.name.length >= 14) {
-        titleRef.current.classList.add('animate-slideText')
-      } else {
-        titleRef.current.classList.remove('animate-slideText')
-      }
-
-      if (trackItem.artists.length >= 2) {
-        artistsRef.current.classList.add('animate-slideText')
-      } else {
-        artistsRef.current.classList.remove('animate-slideText')
-      }
-    }
-  }, [])
-
   const handleCheckFollowedTrack = React.useCallback(async () => {
     if (trackItem) {
       await checkIfUserFollowed('me/tracks/contains', trackItem.id).then(data => setLiked(data))
@@ -119,9 +97,8 @@ export default function Player() {
       handleRecentTrack()
     }
     handleCurrentTrackNumber()
-    handleTitleSlide()
     handleCheckFollowedTrack()
-  }, [handleRecentTrack, tracksPlaylist, handleCurrentTrackNumber, handleCheckFollowedTrack, handleTitleSlide])
+  }, [handleRecentTrack, tracksPlaylist, handleCurrentTrackNumber, handleCheckFollowedTrack])
 
   React.useEffect(() => {
     if (tracksPlaylist && tracksPlaylist.length > 1) {
@@ -162,8 +139,8 @@ export default function Player() {
     handlePlay()
 
     setTimeout(() => {
-      setRepeat('off')
-    }, 1)
+      dispatch(setRepeat('off'))
+    }, 100)
   }
 
   const handlePause = () => {
@@ -191,23 +168,58 @@ export default function Player() {
     handlePlay()
   }
 
+  const aleatoryData = (data: any) => {
+    let trackId = ''
+
+    data.forEach((item: any) => {
+      if (currentPlaylistType === 'album') {
+        if (item?.id === tracksPlaylist[trackNumber].id) {
+          trackId = item.id
+        }
+      } else {
+        if (item.track?.id === tracksPlaylist[trackNumber].track.id) {
+          trackId = item.track.id
+        }
+      }
+      
+    })
+
+    dispatch(setTracksPlaylist(data))
+
+    let filterTrack:any = null
+
+    if (currentPlaylistType === 'album') {
+      filterTrack = data.findIndex((el: any) => el.id === trackId)
+    } else {
+      filterTrack = data.findIndex((el: any) => el.track.id === trackId)
+    }
+    
+    dispatch(setTrackNumber(filterTrack))
+  }
+
   const handleAleatory = async (e: any) => {
     e.preventDefault()
     if (aleatory) {
-      let trackId = ''
-      await GetPlaylist(currentPlaylistId).then(data => {
-        data.tracks.items.forEach((item: any) => {
-          if (item.track?.id === tracksPlaylist[trackNumber].track.id) {
-            trackId = item.track.id
+      switch (currentPlaylistType) {
+        case 'playlist':
+          if (currentPlaylistId){
+            await GetPlaylist(currentPlaylistId).then(data => {
+              aleatoryData(data.tracks.items)
+            })
           }
-        })
-
-        dispatch(setTracksPlaylist(data.tracks.items))
-
-        const filterTrack = data.tracks.items.findIndex((el: any) => el.track.id === trackId)
-        dispatch(setTrackNumber(filterTrack))
-      })
-
+          break;
+        case 'album':
+          if (currentPlaylistId) {
+            await GetAlbum(currentPlaylistId).then(data => {
+              aleatoryData(data.tracks.items)
+            })
+          }
+          break;
+        case 'favorites':
+          await getUserPlaylistLikedMusics().then(data => {
+            aleatoryData(data)
+          })
+      }
     } else {
       let items: any = [...tracksPlaylist]
       let newItems: any = []
@@ -225,7 +237,7 @@ export default function Player() {
       dispatch(setTrackNumber(0))
     }
 
-    setAleatory(!aleatory)
+    dispatch(setAleatory(!aleatory))
   }
 
   const handleDuration = (duration: number) => {
@@ -250,25 +262,21 @@ export default function Player() {
 
     switch (repeat) {
       case 'one':
-        setRepeat('off')
+        dispatch(setRepeat('off'))
         break;
       case 'ever':
-        setRepeat('one')
+        dispatch(setRepeat('one'))
         break;
       case 'off':
-        setRepeat('ever')
+        dispatch(setRepeat('ever'))
         break;
       default:
-        setRepeat('')
+        dispatch(setRepeat(''))
     }
   }
 
   const handleFollowTrack = async () => {
-    await handleFollow('me/tracks', trackItem.id, 'songs', setLoading, setLiked).then(() => {
-      setTimeout(() => {
-        handleAnimationButtonLike(buttonUnfollow)
-      }, 100)
-    })
+    await handleFollow('me/tracks', trackItem.id, 'songs', setLoading, setLiked)
   }
 
   const handleUnfollowTrack = async () => {
@@ -304,56 +312,65 @@ export default function Player() {
 
   return (
     <>
-      <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} idMusic={trackItem?.uri} name={trackItem?.name} />
+      <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} uriMusic={trackItem?.uri} name={trackItem?.name} idMusic={trackItem?.id} />
       <div className="w-full h-full pt-6p">
         <div className="w-full bg-white rounded-tr-xl rounded-tl-xl p-4 h-full flex items-center justify-between">
           {loadingData ?
             <HandleSkeleton /> :
             <>
-              {trackItem &&
-                <div className="grid grid-cols-player items-center gap-2 w-1/4">
-                  <div className="rounded-5px overflow-hidden w-120 h-120">
-                    <img src={trackItem.album?.images[0]?.url ?? trackCover?.url} alt={trackItem.name} />
-                  </div>
-                  <div className="overflow-hidden w-full relative">
-                    <p ref={titleRef} className="text-18 font-bold block whitespace-nowrap absolute top-0">{trackItem.name}</p>
-                    <div ref={artistsRef} className="mt-7 flex gap-2">
-                      {trackItem.artists?.map((item: any, key: any) => (
-                        <Link href={`/artists/${item.id}`} key={key}><p className="text-16 font-normal text-gray-50 truncate hover:underline">{item.name} </p></Link>
-                      ))}
+              <div className="grid grid-cols-player items-center gap-2 w-1/4">
+                {trackItem &&
+                  <>
+                    <div className="rounded-5px overflow-hidden w-120 h-120">
+                      <img src={trackItem.album?.images[0]?.url ?? trackCover?.url} alt={trackItem.name} />
                     </div>
-                  </div>
-                  {loading ?
-                    <LoadingButton loading className="w-6 h-6 min-w-0" />
-                    :
-                    liked ?
-                      <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                        <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollow}/>
-                      </button>
+                    <div className="overflow-hidden w-full relative">
+                      <p className={`
+                      text-18 
+                      font-bold 
+                      block 
+                      whitespace-nowrap 
+                      absolute top-0 
+                      ${trackItem.name.length >= 14 && 'animate-slideText'}`}>
+                        {trackItem.name}
+                      </p>
+                      <div className={`mt-7 flex gap-2 ${trackItem.artists.length >= 2 && 'animate-slideText'}`}>
+                        {trackItem.artists?.map((item: any, key: any) => (
+                          <Link href={`/artists/${item.id}`} key={key}><p className="text-16 font-normal text-gray-50 truncate hover:underline">{item.name} </p></Link>
+                        ))}
+                      </div>
+                    </div>
+                    {loading ?
+                      <LoadingButton loading className="w-6 h-6 min-w-0" />
                       :
-                      <button className="w-6 h-6" onClick={handleFollowTrack}>
-                        <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
-                      </button>
-                  }
-
-                </div>
-              }
+                      liked ?
+                        <button className="w-6 h-6" onClick={handleUnfollowTrack}>
+                          <Image src={HeartLIcon} alt="Heart" className="w-full h-full" />
+                        </button>
+                        :
+                        <button className="w-6 h-6" onClick={handleFollowTrack}>
+                          <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
+                        </button>
+                    }
+                  </>
+                }
+              </div>
               <div className="flex flex-col items-center w-1/2">
                 <div className="flex gap-5">
                   <button
-                    className={`${tracksPlaylist === null || tracksPlaylist.length <= 1 && 'pointer-events-none opacity-60'} ${aleatory ? 'button-active' : 'grayscale'} hover:brightness-125`}
+                    className={`${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} ${aleatory ? 'button-active' : 'grayscale'} hover:brightness-125`}
                     onClick={handleAleatory}>
                     <Image src={AleatoryIcon} alt="Aleatory" />
                   </button>
                   <button
                     onClick={handlePrev}
-                    className={`${tracksPlaylist === null || tracksPlaylist.length <= 1 && 'pointer-events-none opacity-60'} hover:brightness-125`}>
+                    className={`${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} hover:brightness-125`}>
                     <Image src={PrevIcon} alt="prev" />
                   </button>
                   {playMusic ?
                     <button
                       onClick={handlePause}
-                      className="w-13 h-13 justify-center items-center"
+                      className={`w-13 h-13 justify-center items-center ${!trackItem && 'pointer-events-none'}`}
                       onMouseDown={handleAnimationPlayPause}
                       onMouseUp={handleAnimationPlayPause}>
                       <Image ref={buttonPlayPauseRef} src={PauseIcon} alt="pause" className="w-full h-full hover:scale-105" />
@@ -361,20 +378,19 @@ export default function Player() {
                     :
                     <button
                       onClick={handlePlay}
-                      className="w-13 h-13 justify-center items-center"
+                      className={`w-13 h-13 justify-center items-center ${!trackItem && 'pointer-events-none'}`}
                       onMouseDown={handleAnimationPlayPause}
                       onMouseUp={handleAnimationPlayPause}>
                       <Image ref={buttonPlayPauseRef} src={PlayIcon} alt="play" className="w-full h-full hover:scale-105" />
                     </button>
                   }
                   <button
-                    className={`rotate-180 ${tracksPlaylist === null || tracksPlaylist.length <= 1 && 'pointer-events-none opacity-60'} hover:brightness-125`}
+                    className={`rotate-180 ${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} hover:brightness-125`}
                     onClick={handleNext}>
                     <Image src={PrevIcon} alt="prev" />
                   </button>
                   <button className={`
-                  ${tracksPlaylist === null || tracksPlaylist.length <= 1 &&
-                    'pointer-events-none opacity-60'} 
+                  ${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} 
                     ${repeat === 'ever' && 'button-active'} 
                     ${repeat === 'one' && 'button-repeat-one'}
                     ${repeat === 'off' && 'grayscale'}

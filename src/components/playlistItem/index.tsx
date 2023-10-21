@@ -3,9 +3,7 @@ import React from "react"
 import Image from "next/image"
 import Link from "next/link"
 import IconPlay from '@/assets/images/icons/play-button.svg'
-import { GetPlaylist, handlePlayItem } from "@/services/spotify"
-import { useDispatch } from "react-redux"
-import { setCurrentPlaylistId, setPlayMusic, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
+import { handlePlayItem } from "@/services/spotify"
 
 interface Props {
   id: string
@@ -22,9 +20,9 @@ export default function PlaylistItem(props: Props) {
     e.preventDefault()
 
     if (props.type === 'playlist') {
-      await handlePlayItem(props.id as string, 'playlist')
+      await handlePlayItem('playlist', props.id as string)
     } else {
-      await handlePlayItem(props.id as string, 'album')
+      await handlePlayItem('album', props.id as string)
     }
   }
 

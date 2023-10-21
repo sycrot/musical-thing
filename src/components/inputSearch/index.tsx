@@ -11,6 +11,7 @@ interface Props {
   setLoading: (e: boolean) => void
   setTextSearch: (e: string) => void
   setKeyCode?: (e: number) => void
+  onClick?: (e?: any) => void
 }
 
 export function InputSearch(props: Props) {
@@ -35,7 +36,9 @@ export function InputSearch(props: Props) {
 
   return (
     <>
-      <Image src={SearchIcon} alt="Search" className="absolute top-7p left-6p" />
+      <button className="absolute top-7p left-6p" onClick={props.onClick}>
+        <Image src={SearchIcon} alt="Search" />
+      </button>
       <input type="text" placeholder={props.placeholder} className="text-gray-60 outline-none bg-gray-20 rounded-3xl py-1 px-7 w-full" value={props.textSearch} onChange={handleSearch} onKeyDown={handleKeyDown}/>
       {props.buttonClearSearch &&
         <button className="w-5 h-5 absolute top-6p right-6p">

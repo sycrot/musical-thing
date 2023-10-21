@@ -40,7 +40,7 @@ export default function Sidebar() {
       setLoading(false)
     })
   }, [textSearch])
-  
+
   React.useEffect(() => {
     const handlePlaylists = () => {
       if (textSearch.length > 0) {
@@ -71,8 +71,6 @@ export default function Sidebar() {
     }
   ]
 
-  const imageUser = user?.images[0].url
-
   return (
     <>
       {openNewPlaylist &&
@@ -83,7 +81,12 @@ export default function Sidebar() {
           <Image src={Logo} alt="Musical Thing Logo" />
           <div className="flex justify-between items-center w-full mt-5">
             <Link className="rounded-50p overflow-hidden w-13 h-13 bg-gray-20 flex justify-center items-center" href="">
-              <img src={imageUser ? imageUser : UserIcon} alt="Avatar" width={100} height={100} className="w-full h-full object-cover" />
+              {user?.images[0]?.url ?
+                <img src={user?.images[0]?.url} alt="Avatar" width={100} height={100} className="w-full h-full object-cover" />
+                :
+                <Image src={UserIcon} alt="user" />
+              }
+
             </Link>
             <Link href={'/liked-tracks'}>
               <Image src={HeartIcon} alt="Favorites" />
@@ -102,7 +105,7 @@ export default function Sidebar() {
           </div>
           <div className="px-3 mt-6 flex justify-between">
             <div className="relative w-full">
-              <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="Search your library"/>
+              <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="Search your library" />
             </div>
             <div className="relative flex items-center">
               <MenuDropdown items={menuOrderItems} button={

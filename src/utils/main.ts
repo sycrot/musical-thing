@@ -28,11 +28,3 @@ export function handleCopyShare(text: string) {
 
   navigator.clipboard.writeText(text)
 }
-
-export function handleAnimationButtonLike(buttonRef: any) {
-  buttonRef.current.classList.add('animate-buttonFollow')
-
-  setTimeout(() => {
-    buttonRef.current.classList.remove('animate-buttonFollow')
-  }, 1000)
-}

@@ -10,7 +10,7 @@ import HeartIcon from '@/assets/images/icons/heart-l-white.svg'
 import HeartLIcon from '@/assets/images/icons/heart.svg'
 import ShareIcon from '@/assets/images/icons/share-white.svg'
 import ItemMusic from "@/components/musicItem"
-import { handleAnimationButtonLike, handleCopyShare } from "@/utils/main"
+import { handleCopyShare } from "@/utils/main"
 import { LoadingButton } from "@mui/lab"
 import { Skeleton } from '@mui/material'
 import Link from "next/link"
@@ -49,7 +49,6 @@ export default function Playlist() {
   const [tracks, setTracks] = React.useState<[]>([])
   const [followed, setFollowed] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
-  const buttonUnfollow = React.useRef<any>(null)
 
   const handleTracks = React.useCallback(async () => {
     if (user) {
@@ -70,11 +69,7 @@ export default function Playlist() {
   }, [handleFollowedAlbum, handleTracks])
 
   const handleFollowAlbum = async () => {
-    await handleFollow('me/albums', id as string, 'albums', setLoading, setFollowed).then(() => {
-      setTimeout(() => {
-        handleAnimationButtonLike(buttonUnfollow)
-      }, 100)
-    })
+    await handleFollow('me/albums', id as string, 'albums', setLoading, setFollowed)
   }
 
   const handleUnfollowAlbum = async () => {
@@ -84,7 +79,7 @@ export default function Playlist() {
   const handleClickPlay = async (e: any) => {
     e.preventDefault()
 
-    await handlePlayItem(id as string, 'album')
+    await handlePlayItem('album', id as string)
   }
 
   return (
@@ -118,7 +113,7 @@ export default function Playlist() {
                 :
                 followed ?
                   <button onClick={handleUnfollowAlbum} className="w-9 h-9">
-                    <Image src={HeartLIcon} alt="heart" className="w-full h-full" ref={buttonUnfollow}/>
+                    <Image src={HeartLIcon} alt="heart" className="w-full h-full button-unfollow"/>
                   </button>
                   :
                   <button onClick={handleFollowAlbum} className="w-9 h-9">

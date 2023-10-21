@@ -74,6 +74,7 @@ export default function ModalLogin() {
         </div>
         <div className="w-full mt-10">
           <p className="text-16 text-gray-50">Use Spotify to access and enjoy the Musical Thing</p>
+          <span className="text-14 mt-4 block text-gray-50"><b>Warning:</b> Spotify requires users to authenticate with a valid Spotify Premium subscription.</span>
         </div>
         <Link
           href={`https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=token&show_dialog=true&scope=${scopes_encoded}`}

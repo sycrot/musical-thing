@@ -11,7 +11,7 @@ interface NIProps {
 
 function NavItem(props: NIProps) {
   const currentRouter = usePathname()
-  const routerWhite = ['genres/', 'playlist', 'artists/', 'album/']
+  const routerWhite = ['genres/', 'playlist', 'artists/', 'album/', 'liked-tracks']
 
   const router = routerWhite.find(value => currentRouter.includes(value))
 
@@ -34,11 +34,23 @@ export default function Navbar() {
   React.useEffect(() => {
     const handleSearchPage = () => {
       if (keyCode === 13) {
-        router.push(`/search/${textSearch}`)
+        if (textSearch.length > 0) {
+          router.push(`/search/${textSearch}`)
+        } else {
+          router.push('/')
+        }
       }
     }
     handleSearchPage()
   }, [keyCode, textSearch])
+
+  const handleClickSearch = () => {
+    if (textSearch.length > 0) {
+      router.push(`/search/${textSearch}`)
+    } else {
+      router.push('/')
+    }
+  }
   
   return (
     <div className="absolute top-7 px-5 w-full">
@@ -49,7 +61,7 @@ export default function Navbar() {
           <NavItem text="Artists" href="/artists" />
         </div>
         <div className="w-full max-w-xs relative">
-          <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="What do you want to hear?" setKeyCode={setKeyCode}/>
+          <InputSearch buttonClearSearch={buttonClearSearch} setButtonClearSearch={setButtonClearSearch} setLoading={setLoading} setTextSearch={setTextSearch} textSearch={textSearch} placeholder="What do you want to hear?" setKeyCode={setKeyCode} onClick={handleClickSearch}/>
         </div>
       </div>
 

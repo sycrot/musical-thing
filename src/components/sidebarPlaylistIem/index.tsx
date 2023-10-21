@@ -13,6 +13,7 @@ import ButtonModal from "../buttonModal"
 import Link from "next/link";
 import { useDispatch } from "react-redux"
 import { ShowPopup } from "@/services/redux/popup/slice"
+import { useRouter } from "next/navigation"
 
 interface Props {
   id: string
@@ -27,11 +28,14 @@ export default function SidebarPlaylistItem(props: Props) {
   const [buttonHover, setButtonHover] = React.useState(false)
   const [modalRemove, setModalRemove] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const router = useRouter()
   const refCard = React.useRef<any>(null)
 
   const removePlaylist = async (e: any) => {
     e.preventDefault()
-    await DeleteUserPlaylist(props.id, setLoading, setModalRemove)
+    await DeleteUserPlaylist(props.id, setLoading, setModalRemove).then(() => {
+      router.push('/')
+    })
   }
 
   const menuItems: TMenu[] = [

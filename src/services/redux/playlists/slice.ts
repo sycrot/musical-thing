@@ -10,7 +10,10 @@ const initialState = {
   playMusic: false,
   trackNumber: 0,
   currentPlaylistId: null,
-  trackCover: null
+  currentPlaylistType: null,
+  trackCover: null,
+  aleatory: false,
+  repeat: 'off'
 }
 
 const playlistsSlice = createSlice({
@@ -47,6 +50,15 @@ const playlistsSlice = createSlice({
     setTrackCover: (state, action) => {
       return { ...state, trackCover: action.payload }
     },
+    setCurrentPlaylistType: (state, action) => {
+      return { ...state, currentPlaylistType: action.payload }
+    },
+    setAleatory: (state, action) => {
+      return { ...state, aleatory: action.payload }
+    },
+    setRepeat: (state, action) => {
+      return { ...state, repeat: action.payload }
+    },
   }
 })
 
@@ -60,7 +72,10 @@ export const {
   setTrackItem,
   setTrackNumber,
   setCurrentPlaylistId,
-  setTrackCover
+  setTrackCover,
+  setCurrentPlaylistType,
+  setAleatory,
+  setRepeat
 } = playlistsSlice.actions
 
 export default playlistsSlice.reducer

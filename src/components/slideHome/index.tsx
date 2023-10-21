@@ -8,6 +8,7 @@ import ButtonModal from "../buttonModal";
 import { LoadingButton } from "@mui/lab";
 import { Skeleton } from '@mui/material'
 import { useSelector } from "react-redux";
+import Link from "next/link";
 
 interface FPProps {
   id: string
@@ -48,7 +49,9 @@ function FollowedPlaylist(props: FPProps) {
         <LoadingButton loading className="w-9 h-9 min-w-0" />
         :
         followed ?
-          <button className="w-9 h-9" onClick={() => handleUnfollowPlaylist(props.id)}><Image src={IconHeart} alt="Like" className="w-full h-full" /></button>
+          <button className="w-9 h-9" onClick={() => handleUnfollowPlaylist(props.id)}>
+            <Image src={IconHeart} alt="Like" className="w-full h-full button-unfollow"/>
+          </button>
           :
           <button className="w-9 h-9" onClick={() => handleFollowPlaylist(props.id)}><Image src={IconHeartL} alt="Like" className="w-full h-full" /></button>
       }
@@ -64,7 +67,7 @@ export default function SlideHome() {
   const handleClickPlay = async (e: any, id: string) => {
     e.preventDefault()
 
-    await handlePlayItem(id as string, 'playlist')
+    await handlePlayItem('playlist', id as string)
   }
 
   const handleSlideItems = React.useCallback(async () => {
@@ -101,8 +104,10 @@ export default function SlideHome() {
                     <Image src={item.images[0].url} alt="Cover" width={240} height={240} className="w-full h-full" />
                   </div>
                   <div className="content pr-6">
-                    <h1 className="font-bold text-36">{item.name}</h1>
-                    <p className="text-16">{item.description}</p>
+                    <Link href={`/playlist/${item.id}`} className="hover:underline">
+                      <h1 className="font-bold text-36">{item.name}</h1>
+                      <p className="text-16">{item.description}</p>
+                    </Link>
                     <div className="flex mt-6 gap-4">
                       <ButtonModal text="Play" color="bg-orange-50 text-white font-bold" type="button" onClick={e => handleClickPlay(e, item.id)} />
                       <FollowedPlaylist id={item.id} />

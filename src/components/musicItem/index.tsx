@@ -8,13 +8,14 @@ import MenuIcon from '@/assets/images/icons/menu-points.svg'
 import PlayIcon from '@/assets/images/icons/play-music.svg'
 import ShareIcon from '@/assets/images/icons/share.svg'
 import MenuDropdown, { TMenu } from "../menuDropdown"
-import { handleAnimationButtonLike, handleCopyShare } from "@/utils/main"
+import { handleCopyShare } from "@/utils/main"
 import ModalAddToPlaylist from "../modalAddToPlaylist"
-import { GetAlbum, GetPlaylist, checkIfUserFollowed, handleFollow, handlePlayItem, handleRemovePlaylistItem, handleUnfollow } from "@/services/spotify"
+import { GetAlbum, GetPlaylist, checkIfUserFollowed, getUserPlaylistLikedMusics, handleFollow, handlePlayItem, handleRemovePlaylistItem, handleUnfollow } from "@/services/spotify"
 import { LoadingButton } from "@mui/lab"
 import Link from "next/link"
 import { setCurrentPlaylistId, setPlayMusic, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
 import { useDispatch, useSelector } from "react-redux"
+import StreamLoader from "@/assets/images/icons/stream"
 
 interface Props {
   id: string
@@ -25,27 +26,27 @@ interface Props {
   artists: any
   album: any
   duration_ms: any
-  idPlaylist: string
+  idPlaylist?: string
   typePlaylist: string
   trackUri: string
   playlistName?: string
+  reload?: boolean
 }
 
 export default function ItemMusic(props: Props) {
   const { user } = useSelector((r: any) => r.userReducer)
-  const { userPlaylists } = useSelector((r: any) => r.playlistsReducer)
+  const { userPlaylists, trackItem } = useSelector((r: any) => r.playlistsReducer)
   const [actions, setActions] = React.useState(false)
   const [modalAddToPlaylists, setModalAddToPlaylist] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [liked, setLiked] = React.useState(false)
   const [removeTrack, setRemoveTrack] = React.useState(false)
   const dispatch = useDispatch()
-  const buttonUnfollowTrack = useRef<any>(null)
 
   const handleFollowedTrack = React.useCallback(async () => {
     await checkIfUserFollowed('me/tracks/contains', props.id).then(data => setLiked(data))
   }, [props.id])
-  
+
   const handleCheckUserPlaylist = React.useCallback(() => {
     let list: any = []
 
@@ -91,21 +92,23 @@ export default function ItemMusic(props: Props) {
   ]
 
   const handleFollowTrack = async () => {
-    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked).then(() => {
-      setTimeout(() => {
-        handleAnimationButtonLike(buttonUnfollowTrack)
-      }, 100)
-    })
+    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked)
   }
 
   const handleUnfollowTrack = async () => {
-    await handleUnfollow('me/tracks', props.id, 'songs', setLoading, setLiked)
+    await handleUnfollow('me/tracks', props.id, 'songs', setLoading, setLiked).then(() => {
+      if (props.reload) {
+        window.location.reload()
+      }
+    })
   }
 
   const handleUnfollowTrackFromPlaylist = async () => {
-    await handleRemovePlaylistItem(props.idPlaylist, props.playlistName || '', props.trackUri).then(() => {
-      window.location.reload()
-    })
+    if (props.idPlaylist) {
+      await handleRemovePlaylistItem(props.idPlaylist, props.playlistName || '', props.trackUri).then(() => {
+        window.location.reload()
+      })
+    }
   }
 
   const handleClickPlay = async (e: any) => {
@@ -113,42 +116,58 @@ export default function ItemMusic(props: Props) {
 
     switch (props.typePlaylist) {
       case 'playlist':
-        await GetPlaylist(props.idPlaylist).then(data => {
-          dispatch(setCurrentPlaylistId(props.idPlaylist))
-          dispatch(setTracksPlaylist(data.tracks.items))
+        if (props.idPlaylist) {
+          await GetPlaylist(props.idPlaylist).then(data => {
+            dispatch(setCurrentPlaylistId(props.idPlaylist))
+            dispatch(setTracksPlaylist(data.tracks.items))
 
-          const filterTrack = data.tracks.items.findIndex((el: any) => el.track.id === props.id)
+            const filterTrack = data.tracks.items.findIndex((el: any) => el.track.id === props.id)
 
-          dispatch(setTrackNumber(filterTrack))
-          dispatch(setPlayMusic(true))
-        })
+            dispatch(setTrackNumber(filterTrack))
+            dispatch(setPlayMusic(true))
+          })
+        }
         break;
       case 'album':
-        await GetAlbum(props.idPlaylist).then(data => {
-          dispatch(setCurrentPlaylistId(props.idPlaylist))
-          dispatch(setTracksPlaylist(data.tracks.items))
-          const filterTrack = data.tracks.items.findIndex((el: any) => el.id === props.id)
+        if (props.idPlaylist) {
+          await GetAlbum(props.idPlaylist).then(data => {
+            dispatch(setCurrentPlaylistId(props.idPlaylist))
+            dispatch(setTracksPlaylist(data.tracks.items))
+            const filterTrack = data.tracks.items.findIndex((el: any) => el.id === props.id)
+            dispatch(setTrackNumber(filterTrack))
+            dispatch(setPlayMusic(true))
+          })
+        }
+        break;
+      case 'track':
+        await handlePlayItem('track', props.id as string)
+        break;
+      case 'favorites':
+        await getUserPlaylistLikedMusics().then(data => {
+          dispatch(setCurrentPlaylistId(null))
+          dispatch(setTracksPlaylist(data))
+          const filterTrack = data.findIndex((el: any) => el.track.id === props.id)
           dispatch(setTrackNumber(filterTrack))
           dispatch(setPlayMusic(true))
         })
         break;
-      case 'track':
-        await handlePlayItem(props.id, 'track')
     }
 
   }
 
   return (
     <>
-      <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} idMusic={props.uri} name={props.name} />
+      <ModalAddToPlaylist open={modalAddToPlaylists} setOpen={setModalAddToPlaylist} uriMusic={props.uri} idMusic={props.id} name={props.name} />
       <tr className="cursor-pointer hover:bg-green-10" onMouseOver={() => setActions(true)} onMouseOut={() => setActions(false)}>
         <td className="pl-5 rounded-tl-5px rounded-bl-5px">
-          {actions ?
-            <button onClick={handleClickPlay}><Image src={PlayIcon} alt="play" /></button>
+          {trackItem?.id === props.id ?
+            <StreamLoader />
             :
-            <p className="text-gray-50 w-15p">{props.trackNumber}</p>
+            actions ?
+              <button onClick={handleClickPlay}><Image src={PlayIcon} alt="play" /></button>
+              :
+              <p className="text-gray-50 w-15p">{props.trackNumber}</p>
           }
-
         </td>
         <td className="p-2">
           <div className="grid grid-cols-musicItem items-center gap-1">
@@ -156,8 +175,8 @@ export default function ItemMusic(props: Props) {
               <img src={props.image} alt={props.name} />
             </div>
             <div className="truncate">
-              <p className="font-bold truncate">{props.name}</p>
-              <p className="font-normal text-gray-50 truncate">
+              <p className={`font-bold truncate ${trackItem?.id === props.id && 'text-orange-50'}`}>{props.name}</p>
+              <p className={`font-normal truncate ${trackItem?.id === props.id ? 'text-orange-50' : 'text-gray-50'}`}>
                 {props.artists.map((artist: any, key: any) => (
                   <Link key={key} href={`/artists/${artist.id}`} className="hover:underline">{artist.name} </Link>
                 ))}
@@ -165,8 +184,13 @@ export default function ItemMusic(props: Props) {
             </div>
           </div>
         </td>
-        <td className="p-2"><Link href={`/album/${props.album.id}`} className="hover:underline"><p className="text-gray-50">{props.album.name}</p></Link></td>
-        <td className="p-2"><p className="text-gray-50">{getDuration(props.duration_ms)}</p></td>
+        <td className="p-2">
+          <Link href={`/album/${props.album.id}`} className="hover:underline">
+            <p className={`${trackItem?.id === props.id ? 'text-orange-50' : 'text-gray-50'}`}>{props.album.name}</p>
+          </Link>
+        </td>
+        <td className="p-2">
+          <p className={`${trackItem?.id === props.id ? 'text-orange-50' : 'text-gray-50'}`}>{getDuration(props.duration_ms)}</p></td>
         <td className="p-2 px-4 rounded-tr-5px rounded-br-5px">
           <div className="flex gap-3 w-60">
             {actions &&
@@ -176,7 +200,7 @@ export default function ItemMusic(props: Props) {
                   :
                   liked ?
                     <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                      <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollowTrack}/>
+                      <Image src={HeartLIcon} alt="Heart" className="w-full h-full button-unfollow" />
                     </button>
                     :
                     <button className="w-6 h-6" onClick={handleFollowTrack}>
