@@ -9,6 +9,7 @@ import { AddToPlaylist, CreatePlaylist, GetPlaylistItems, GetUserPlaylists, Sear
 import { useDispatch, useSelector } from "react-redux";
 import SidebarPlaylistItem from "../sidebarPlaylistIem";
 import { ShowPopup } from "@/services/redux/popup/slice";
+import { useRouter } from "next/navigation";
 
 interface Props {
   open: boolean
@@ -28,6 +29,7 @@ export default function ModalAddToPlaylist(props: Props) {
   const refCard = React.useRef<any>(null)
   const [playlists, setPlaylists] = React.useState<any>([])
   const dispatch = useDispatch()
+  const router = useRouter()
 
   const handlePlaylistsSearch = React.useCallback(() => {
     let list: any = []
@@ -105,6 +107,7 @@ export default function ModalAddToPlaylist(props: Props) {
     await CreatePlaylist(user.id, props.name, true, '').then(async (data) => {
       await AddToPlaylist(data.id, props.uriMusic, props.name).then(() => {
         handleBack()
+        router.push(`/playlist/${data.id}`)
       })
     })
   }
