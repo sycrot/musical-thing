@@ -57,12 +57,12 @@ export default function Player() {
   const [trackPercent, setTrackPercent] = React.useState(0)
   const [trackDuration, setTrackDuration] = React.useState(0)
   const dispatch = useDispatch()
-  const buttonPlayPauseRef = useRef<any>(null)
   const [liked, setLiked] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [loadingData, setLoadingData] = React.useState(true)
   const [modalAddToPlaylists, setModalAddToPlaylist] = React.useState(false)
   const [volume, setVolume] = React.useState(100)
+  const buttonUnfollowRef = React.useRef<any>(null)
 
   const handleRecentTrack = React.useCallback(async () => {
     setLoadingData(true)
@@ -87,10 +87,10 @@ export default function Player() {
   }, [trackNumber, tracksPlaylist])
 
   const handleCheckFollowedTrack = React.useCallback(async () => {
-    if (trackItem) {
+    if (trackItem?.id) {
       await checkIfUserFollowed('me/tracks/contains', trackItem.id).then(data => setLiked(data))
     }
-  }, [])
+  }, [trackItem?.id])
 
   React.useEffect(() => {
     if (tracksPlaylist === null) {
@@ -279,7 +279,7 @@ export default function Player() {
   }
 
   const handleFollowTrack = async () => {
-    await handleFollow('me/tracks', trackItem.id, 'songs', setLoading, setLiked)
+    await handleFollow('me/tracks', trackItem.id, 'songs', setLoading, setLiked, buttonUnfollowRef)
   }
 
   const handleUnfollowTrack = async () => {
@@ -302,14 +302,6 @@ export default function Player() {
         currentTrack.volume = 0
         setVolume(0)
       }
-    }
-  }
-
-  const handleAnimationPlayPause = () => {
-    if (buttonPlayPauseRef?.current.className.includes('scale-90')) {
-      buttonPlayPauseRef?.current.classList.remove('scale-90')
-    } else {
-      buttonPlayPauseRef?.current.classList.add('scale-90')
     }
   }
 
@@ -347,60 +339,79 @@ export default function Player() {
                       <LoadingButton loading className="w-6 h-6 min-w-0" />
                       :
                       liked ?
-                        <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                          <Image src={HeartLIcon} alt="Heart" className="w-full h-full" />
-                        </button>
+                        <Tooltip title="Dislike track" placement="top" arrow>
+                          <button className="w-6 h-6" onClick={handleUnfollowTrack}>
+                            <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollowRef} />
+                          </button>
+                        </Tooltip>
                         :
-                        <button className="w-6 h-6" onClick={handleFollowTrack}>
-                          <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
-                        </button>
+                        <Tooltip title="Like track" placement="top" arrow>
+                          <button className="w-6 h-6" onClick={handleFollowTrack}>
+                            <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
+                          </button>
+                        </Tooltip>
+
                     }
                   </>
                 }
               </div>
               <div className="flex flex-col items-center w-1/2">
                 <div className="flex gap-5">
-                  <button
-                    className={`${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} ${aleatory ? 'button-active' : 'grayscale'} hover:brightness-125`}
-                    onClick={handleAleatory}>
-                    <Image src={AleatoryIcon} alt="Aleatory" />
-                  </button>
-                  <button
-                    onClick={handlePrev}
-                    className={`${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} hover:brightness-125`}>
-                    <Image src={PrevIcon} alt="prev" />
-                  </button>
+                  <Tooltip title={`${aleatory ? 'Disable random' : 'Random mode'}`} placement="top" arrow>
+                    <button
+                      className={`${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} ${aleatory ? 'button-active' : 'grayscale'} hover:brightness-125`}
+                      onClick={handleAleatory}>
+                      <Image src={AleatoryIcon} alt="Aleatory" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title={`Previous track`} placement="top" arrow>
+                    <button
+                      onClick={handlePrev}
+                      className={`${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} hover:brightness-125`}>
+                      <Image src={PrevIcon} alt="prev" />
+                    </button>
+                  </Tooltip>
                   {playMusic ?
-                    <button
-                      onClick={handlePause}
-                      className={`w-13 h-13 justify-center items-center ${!trackItem && 'pointer-events-none'}`}
-                      onMouseDown={handleAnimationPlayPause}
-                      onMouseUp={handleAnimationPlayPause}>
-                      <Image ref={buttonPlayPauseRef} src={PauseIcon} alt="pause" className="w-full h-full hover:scale-105" />
-                    </button>
+                    <Tooltip title={`Pause`} placement="top" arrow>
+                      <button
+                        onClick={handlePause}
+                        className={`w-13 h-13 justify-center items-center ${!trackItem && 'pointer-events-none'} active:scale-90`}
+                        >
+                        <Image src={PauseIcon} alt="pause" className="w-full h-full hover:scale-105" />
+                      </button>
+                    </Tooltip>
                     :
-                    <button
-                      onClick={handlePlay}
-                      className={`w-13 h-13 justify-center items-center ${!trackItem && 'pointer-events-none'}`}
-                      onMouseDown={handleAnimationPlayPause}
-                      onMouseUp={handleAnimationPlayPause}>
-                      <Image ref={buttonPlayPauseRef} src={PlayIcon} alt="play" className="w-full h-full hover:scale-105" />
-                    </button>
+                    <Tooltip title={`Play`} placement="top" arrow>
+                      <button
+                        onClick={handlePlay}
+                        className={`w-13 h-13 justify-center items-center ${!trackItem && 'pointer-events-none'} active:scale-90`}>
+                        <Image src={PlayIcon} alt="play" className="w-full h-full hover:scale-105" />
+                      </button>
+                    </Tooltip>
                   }
-                  <button
-                    className={`rotate-180 ${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} hover:brightness-125`}
-                    onClick={handleNext}>
-                    <Image src={PrevIcon} alt="prev" />
-                  </button>
-                  <button className={`
+                  <Tooltip title={`Next track`} placement="top" arrow>
+                    <button
+                      className={`rotate-180 ${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} hover:brightness-125`}
+                      onClick={handleNext}>
+                      <Image src={PrevIcon} alt="prev" />
+                    </button>
+                  </Tooltip>
+                  <Tooltip title={`
+                    ${repeat === 'ever' ? 'Repeat one' : ''}
+                    ${repeat === 'one' ? 'Do not repeat' : ''}
+                    ${repeat === 'off' ? 'Repeat' : ''}
+                  `} placement="top" arrow>
+                    <button className={`
                   ${!tracksPlaylist || tracksPlaylist.length <= 1 ? 'pointer-events-none opacity-60' : ''} 
                     ${repeat === 'ever' && 'button-active'} 
                     ${repeat === 'one' && 'button-repeat-one'}
                     ${repeat === 'off' && 'grayscale'}
                     hover:brightness-125`}
-                    onClick={handleRepeat}>
-                    <Image src={RepeatIcon} alt="repeat" />
-                  </button>
+                      onClick={handleRepeat}>
+                      <Image src={RepeatIcon} alt="repeat" />
+                    </button>
+                  </Tooltip>
+
                 </div>
                 <div className="flex items-center mt-5 gap-2">
                   <span>{handleDuration(trackCurrentTime * 1000)}</span>
@@ -415,7 +426,7 @@ export default function Player() {
                       <Image src={AddToPlaylistIcon} alt="Add to playlist" />
                     </button>
                   </Tooltip>
-                  <Tooltip title="Mute" placement="top" arrow>
+                  <Tooltip title={`${volume === 0 ? 'Unmute' : 'Mute'}`} placement="top" arrow>
                     <button onClick={handleMute} className="hover:brightness-125">
                       <Image src={volume === 0 ? SoundOffIcon : SoundIcon} alt="Sound" />
                     </button>

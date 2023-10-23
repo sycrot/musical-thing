@@ -12,7 +12,7 @@ import ShareIcon from '@/assets/images/icons/share-white.svg'
 import ItemMusic from "@/components/musicItem"
 import { handleCopyShare } from "@/utils/main"
 import { LoadingButton } from "@mui/lab"
-import { Skeleton } from '@mui/material'
+import { Skeleton, Tooltip } from '@mui/material'
 import { useSelector } from "react-redux"
 
 export const HandleSkeletonPlaylist = () => {
@@ -52,6 +52,7 @@ export default function Playlist() {
   const [followed, setFollowed] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [ofUser, setOfUser] = React.useState(false)
+  const buttonUnfollowRef = React.useRef<any>(null)
 
   const handleTracks = React.useCallback(async () => {
     if (user) {
@@ -82,12 +83,15 @@ export default function Playlist() {
 
   React.useEffect(() => {
     handleTracks()
+  })
+
+  React.useEffect(() => {
     handleFollowedPlaylist()
     handleCheckUserPlaylist()
-  }, [handleFollowedPlaylist, handleTracks, handleCheckUserPlaylist])
+  }, [handleFollowedPlaylist, handleCheckUserPlaylist])
 
   const handleFollowPlaylist = async () => {
-    await FollowPlaylist(id as string, setLoading, setFollowed)
+    await FollowPlaylist(id as string, setLoading, setFollowed, buttonUnfollowRef)
   }
 
   const handleUnfollowPlaylist = async () => {
@@ -127,9 +131,12 @@ export default function Playlist() {
             </div>
           </div>
           <div className="flex gap-5 mt-7 items-center">
-            <button onClick={handleClickPlay}>
-              <Image src={ButtonPlayIcon} alt="play" />
-            </button>
+            <Tooltip title={`Play playlist`} placement="top" arrow>
+              <button onClick={handleClickPlay}>
+                <Image src={ButtonPlayIcon} alt="play" />
+              </button>
+            </Tooltip>
+
             {loading ?
               <LoadingButton loading className="w-9 h-9 min-w-0" />
               :
@@ -137,22 +144,26 @@ export default function Playlist() {
               <>
                 {
                   followed ?
-                    <button onClick={handleUnfollowPlaylist} className="w-9 h-9 relative">
-                      <Image src={HeartLIcon} alt="heart" className="w-full h-full button-unfollow"/>
-                    </button>
+                    <Tooltip title={`Unfollow playlist`} placement="top" arrow>
+                      <button onClick={handleUnfollowPlaylist} className="w-9 h-9 relative">
+                        <Image src={HeartLIcon} alt="heart" className="w-full h-full"  ref={buttonUnfollowRef}/>
+                      </button>
+                    </Tooltip>
                     :
-                    <button onClick={handleFollowPlaylist} className="w-9 h-9 relative">
-                      <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
-                    </button>
+                    <Tooltip title={`Follow playlist`} placement="top" arrow>
+                      <button onClick={handleFollowPlaylist} className="w-9 h-9 relative">
+                        <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
+                      </button>
+                    </Tooltip>
                 }
               </>
 
             }
-
-
-            <button onClick={() => handleCopyShare(window.location.href)}>
-              <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
-            </button>
+            <Tooltip title={`Share playlist (copy link)`} placement="top" arrow>
+              <button onClick={() => handleCopyShare(window.location.href)}>
+                <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
+              </button>
+            </Tooltip>
           </div>
           <div className="mt-12">
             <table className="text-left border-separate border-spacing-0 w-full">

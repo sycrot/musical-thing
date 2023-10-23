@@ -147,7 +147,8 @@ export async function DeleteUserPlaylist(
 export async function FollowPlaylist(
   playlist_id: string,
   setLoading: (loading: boolean) => void,
-  setFollowed: (loading: boolean) => void) {
+  setFollowed: (loading: boolean) => void,
+  buttonUnfollowRef: any) {
   if (window.localStorage.token) {
     setLoading(true)
     await axios.put(`${path}/playlists/${playlist_id}/followers`, {
@@ -163,6 +164,12 @@ export async function FollowPlaylist(
             show: true
           }))
 
+          if (buttonUnfollowRef) {
+            setTimeout(() => {
+              buttonUnfollowRef.current.classList.add('animate-buttonFollow')
+            }, 100)
+          }
+          
           setLoading(false)
           setFollowed(true)
         })
@@ -195,7 +202,9 @@ export async function FollowArtist(
   id: string,
   type: string,
   setLoading: (loading: boolean) => void,
-  setLiked: (loading: boolean) => void) {
+  setLiked: (loading: boolean) => void,
+  buttonUnfollowRef: any
+  ) {
   if (window.localStorage.token) {
     setLoading(true)
     await axios.put(`${path}/me/following?type=${type}`, {
@@ -210,6 +219,12 @@ export async function FollowArtist(
           text: 'Added to followed artists',
           show: true
         }))
+
+        if (buttonUnfollowRef) {
+          setTimeout(() => {
+            buttonUnfollowRef.current.classList.add('animate-buttonFollow')
+          }, 100)
+        }
 
         setLoading(false)
         setLiked(true)
@@ -507,7 +522,8 @@ export async function handleFollow(
   id: string,
   type: string,
   setLoading: (loading: boolean) => void,
-  setLiked: (loading: boolean) => void) {
+  setLiked: (loading: boolean) => void,
+  buttonUnfollowRef: any) {
   if (window.localStorage.token) {
     setLoading(true)
     await axios.put(`${path}/${link}`, {
@@ -522,6 +538,12 @@ export async function handleFollow(
           text: `Added to followed ${type}`,
           show: true
         }))
+
+        if (buttonUnfollowRef) {
+          setTimeout(() => {
+            buttonUnfollowRef.current.classList.add('animate-buttonFollow')
+          }, 1)
+        }
 
         setLoading(false)
         setLiked(true)
@@ -706,6 +728,10 @@ export async function handleRemovePlaylistItem(
 
 
 const handleErrors = (err: any) => {
+  if (!window?.localStorage.token) {
+    window.localStorage.removeItem('token')
+  }
+
   if (err.response.status === 403) {
     window.localStorage.removeItem('token')
     location.reload()

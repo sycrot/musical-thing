@@ -12,7 +12,7 @@ import ShareIcon from '@/assets/images/icons/share-white.svg'
 import ItemMusic from "@/components/musicItem"
 import { handleCopyShare } from "@/utils/main"
 import { LoadingButton } from "@mui/lab"
-import { Skeleton } from '@mui/material'
+import { Skeleton, Tooltip } from '@mui/material'
 import Link from "next/link"
 import { useSelector } from "react-redux"
 
@@ -24,7 +24,7 @@ const HandleSkeletonAlbum = () => {
           <div className="flex items-center gap-2">
             <div className="">
               <Skeleton variant="rounded" width={220} height={60} />
-              <Skeleton variant="rounded" width={470} height={24} className="mt-6"/>
+              <Skeleton variant="rounded" width={470} height={24} className="mt-6" />
             </div>
           </div>
         </div>
@@ -49,6 +49,7 @@ export default function Playlist() {
   const [tracks, setTracks] = React.useState<[]>([])
   const [followed, setFollowed] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const buttonUnfollowRef = React.useRef<any>(null)
 
   const handleTracks = React.useCallback(async () => {
     if (user) {
@@ -69,7 +70,7 @@ export default function Playlist() {
   }, [handleFollowedAlbum, handleTracks])
 
   const handleFollowAlbum = async () => {
-    await handleFollow('me/albums', id as string, 'albums', setLoading, setFollowed)
+    await handleFollow('me/albums', id as string, 'albums', setLoading, setFollowed, buttonUnfollowRef)
   }
 
   const handleUnfollowAlbum = async () => {
@@ -105,26 +106,32 @@ export default function Playlist() {
               </div>
             </div>
             <div className="flex gap-5 mt-7 items-center">
-              <button onClick={handleClickPlay}>
-                <Image src={ButtonPlayIcon} alt="play" />
-              </button>
+              <Tooltip title={`Play album`} placement="top" arrow>
+                <button onClick={handleClickPlay}>
+                  <Image src={ButtonPlayIcon} alt="play" />
+                </button>
+              </Tooltip>
               {loading ?
                 <LoadingButton loading className="w-9 h-9 min-w-0" />
                 :
                 followed ?
-                  <button onClick={handleUnfollowAlbum} className="w-9 h-9">
-                    <Image src={HeartLIcon} alt="heart" className="w-full h-full button-unfollow"/>
-                  </button>
+                  <Tooltip title={`Unfollow album`} placement="top" arrow>
+                    <button onClick={handleUnfollowAlbum} className="w-9 h-9">
+                      <Image src={HeartLIcon} alt="heart" className="w-full h-full" ref={buttonUnfollowRef} />
+                    </button>
+                  </Tooltip>
                   :
-                  <button onClick={handleFollowAlbum} className="w-9 h-9">
-                    <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
-                  </button>
+                  <Tooltip title={`Follow album`} placement="top" arrow>
+                    <button onClick={handleFollowAlbum} className="w-9 h-9">
+                      <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
+                    </button>
+                  </Tooltip>
               }
-
-
-              <button onClick={() => handleCopyShare(window.location.href)}>
-                <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
-              </button>
+              <Tooltip title={`Share album (copy link)`} placement="top" arrow>
+                <button onClick={() => handleCopyShare(window.location.href)}>
+                  <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
+                </button>
+              </Tooltip>
             </div>
           </div>
           <div className="px-5 mt-4">
@@ -140,7 +147,7 @@ export default function Playlist() {
               </thead>
               <tbody>
                 {tracks.map((item: any, key) => (
-                  <ItemMusic key={key} trackNumber={key+1} id={item.id} name={item.name} uri={item.uri} image={album.images[0]?.url} artists={item.artists} album={album} duration_ms={item.duration_ms} idPlaylist={id as string} typePlaylist="album" trackUri={item.uri}/>
+                  <ItemMusic key={key} trackNumber={key + 1} id={item.id} name={item.name} uri={item.uri} image={album.images[0]?.url} artists={item.artists} album={album} duration_ms={item.duration_ms} idPlaylist={id as string} typePlaylist="album" trackUri={item.uri} />
                 ))}
 
               </tbody>

@@ -1,6 +1,6 @@
 'use client'
 import { handleCloseAnimate } from "@/utils/main";
-import { CircularProgress, Modal } from "@mui/material";
+import { CircularProgress, Modal, Tooltip } from "@mui/material";
 import Image from "next/image";
 import XIcon from "@/assets/images/icons/x-notrounded.svg"
 import React from "react";
@@ -114,13 +114,15 @@ export default function ModalAddToPlaylist(props: Props) {
       <div className="bg-white rounded-xl p-5 w-full max-w-sm text-center animate-scale relative" ref={refCard}>
         {loading &&
           <div className="absolute top-0 left-0 bg-black-10 flex justify-center items-center w-full h-full z-20">
-            <CircularProgress className="text-orange-50"/>
+            <CircularProgress className="text-orange-50" />
           </div>
         }
         <div className="text-center relative">
-          <button onClick={handleBack} className="absolute left-0 top-1">
-            <Image src={XIcon} alt="Close" className="mr-1" />
-          </button>
+          <Tooltip title={`Close`} placement="top" arrow>
+            <button onClick={handleBack} className="absolute left-0 top-1">
+              <Image src={XIcon} alt="Close" className="mr-1" />
+            </button>
+          </Tooltip>
           <h3 className="text-24 text-center font-bold">Add to playlist</h3>
         </div>
         <div className="mt-4 relative">

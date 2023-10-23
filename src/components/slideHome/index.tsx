@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import Slider from 'react-slick'
 import { CheckIfUserFollowPlaylist, DeleteUserPlaylist, FollowPlaylist, GetFeaturedPlaylists, handlePlayItem } from "@/services/spotify";
 import Image from "next/image";
@@ -6,7 +6,7 @@ import IconHeartL from '@/assets/images/icons/heart-l.svg'
 import IconHeart from '@/assets/images/icons/heart.svg'
 import ButtonModal from "../buttonModal";
 import { LoadingButton } from "@mui/lab";
-import { Skeleton } from '@mui/material'
+import { Skeleton, Tooltip } from '@mui/material'
 import { useSelector } from "react-redux";
 import Link from "next/link";
 
@@ -27,16 +27,19 @@ const HandleSkeleton = () => {
 function FollowedPlaylist(props: FPProps) {
   const [followed, setFollowed] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const buttonRef = React.useRef<any>(null)
 
-  React.useEffect(() => {
-    const handleFollowedPlaylist = async () => {
-      await CheckIfUserFollowPlaylist(props.id).then(data => setFollowed(data))
-    }
-    handleFollowedPlaylist()
+  const handleFollowedPlaylist = React.useCallback(async () => {
+    await CheckIfUserFollowPlaylist(props.id).then(data => setFollowed(data))
   }, [props.id])
 
+
+  React.useEffect(() => {
+    handleFollowedPlaylist()
+  }, [handleFollowedPlaylist])
+
   const handleFollowPlaylist = async (id: string) => {
-    await FollowPlaylist(id, setLoading, setFollowed)
+    await FollowPlaylist(id, setLoading, setFollowed, buttonRef)
   }
 
   const handleUnfollowPlaylist = async (id: string) => {
@@ -49,11 +52,15 @@ function FollowedPlaylist(props: FPProps) {
         <LoadingButton loading className="w-9 h-9 min-w-0" />
         :
         followed ?
-          <button className="w-9 h-9" onClick={() => handleUnfollowPlaylist(props.id)}>
-            <Image src={IconHeart} alt="Like" className="w-full h-full button-unfollow"/>
-          </button>
+          <Tooltip title="Unfollow playlist" placement="top" arrow>
+            <button className="w-9 h-9" onClick={() => handleUnfollowPlaylist(props.id)}>
+              <Image src={IconHeart} alt="Like" className={`w-full h-full`} ref={buttonRef} />
+            </button>
+          </Tooltip>
           :
-          <button className="w-9 h-9" onClick={() => handleFollowPlaylist(props.id)}><Image src={IconHeartL} alt="Like" className="w-full h-full" /></button>
+          <Tooltip title="Follow playlist" placement="top" arrow>
+            <button className="w-9 h-9" onClick={() => handleFollowPlaylist(props.id)}><Image src={IconHeartL} alt="Like" className="w-full h-full" /></button>
+          </Tooltip>
       }
     </>
   )

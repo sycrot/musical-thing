@@ -16,6 +16,7 @@ import Link from "next/link"
 import { setCurrentPlaylistId, setPlayMusic, setTrackNumber, setTracksPlaylist } from "@/services/redux/playlists/slice"
 import { useDispatch, useSelector } from "react-redux"
 import StreamLoader from "@/assets/images/icons/stream"
+import { Tooltip } from "@mui/material"
 
 interface Props {
   id: string
@@ -30,7 +31,6 @@ interface Props {
   typePlaylist: string
   trackUri: string
   playlistName?: string
-  reload?: boolean
 }
 
 export default function ItemMusic(props: Props) {
@@ -41,6 +41,7 @@ export default function ItemMusic(props: Props) {
   const [loading, setLoading] = React.useState(false)
   const [liked, setLiked] = React.useState(false)
   const [removeTrack, setRemoveTrack] = React.useState(false)
+  const buttonUnfollowRef = React.useRef<any>(null)
   const dispatch = useDispatch()
 
   const handleFollowedTrack = React.useCallback(async () => {
@@ -92,22 +93,16 @@ export default function ItemMusic(props: Props) {
   ]
 
   const handleFollowTrack = async () => {
-    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked)
+    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked, buttonUnfollowRef)
   }
 
   const handleUnfollowTrack = async () => {
-    await handleUnfollow('me/tracks', props.id, 'songs', setLoading, setLiked).then(() => {
-      if (props.reload) {
-        window.location.reload()
-      }
-    })
+    await handleUnfollow('me/tracks', props.id, 'songs', setLoading, setLiked)
   }
 
   const handleUnfollowTrackFromPlaylist = async () => {
     if (props.idPlaylist) {
-      await handleRemovePlaylistItem(props.idPlaylist, props.playlistName || '', props.trackUri).then(() => {
-        window.location.reload()
-      })
+      await handleRemovePlaylistItem(props.idPlaylist, props.playlistName || '', props.trackUri)
     }
   }
 
@@ -164,7 +159,10 @@ export default function ItemMusic(props: Props) {
             <StreamLoader />
             :
             actions ?
-              <button onClick={handleClickPlay}><Image src={PlayIcon} alt="play" /></button>
+              <Tooltip title={`Play track`} placement="top" arrow>
+                <button onClick={handleClickPlay}><Image src={PlayIcon} alt="play" /></button>
+              </Tooltip>
+
               :
               <p className="text-gray-50 w-15p">{props.trackNumber}</p>
           }
@@ -199,13 +197,17 @@ export default function ItemMusic(props: Props) {
                   <LoadingButton loading className="w-6 h-6 min-w-0" />
                   :
                   liked ?
-                    <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                      <Image src={HeartLIcon} alt="Heart" className="w-full h-full button-unfollow" />
-                    </button>
+                    <Tooltip title={`Dislike track`} placement="top" arrow>
+                      <button className="w-6 h-6" onClick={handleUnfollowTrack}>
+                        <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollowRef} />
+                      </button>
+                    </Tooltip>
                     :
-                    <button className="w-6 h-6" onClick={handleFollowTrack}>
-                      <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
-                    </button>
+                    <Tooltip title={`Like track`} placement="top" arrow>
+                      <button className="w-6 h-6" onClick={handleFollowTrack}>
+                        <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
+                      </button>
+                    </Tooltip>
                 }
                 <MenuDropdown items={menuItems} buttonStyle="grayscale w-6 h-6" menuItemsStyle="mt-10l -right-8" button={
                   <>

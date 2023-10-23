@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import IconPlay from '@/assets/images/icons/play-button.svg'
 import { handlePlayItem } from "@/services/spotify"
+import { Tooltip } from "@mui/material"
 
 interface Props {
   id: string
@@ -31,9 +32,11 @@ export default function PlaylistItem(props: Props) {
       <div className="rounded-4px overflow-hidden relative h-170">
         <img src={props.image} alt={props.title} className="w-full h-full object-cover" />
         {hover &&
-          <button className="absolute bottom-2 right-2 w-11 h-11 animate-buttonPlaylist z-10" onClick={e => handleClickPlay(e)}>
-            <Image src={IconPlay} alt="Play" className="w-full h-full" />
-          </button>
+          <Tooltip title={`Play ${props.type}`} placement="top" arrow>
+            <button className="absolute bottom-2 right-2 w-11 h-11 animate-buttonPlaylist z-10 hover:scale-105 active:scale-95" onClick={e => handleClickPlay(e)}>
+              <Image src={IconPlay} alt="Play" className="w-full h-full" />
+            </button>
+          </Tooltip>
         }
 
       </div>

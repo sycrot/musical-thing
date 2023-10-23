@@ -5,8 +5,7 @@ import NavigateBackButton from "@/components/navigateBackButton"
 import { CheckIfUserFollowedArtist, FollowArtist, GetArtist, GetArtistAlbums, GetArtistRelatedArtists, GetArtistTopTracks, UnfollowArtist } from "@/services/spotify"
 import Image from "next/image"
 import { LoadingButton } from "@mui/lab"
-import { Skeleton } from '@mui/material'
-import ButtonPlayIcon from '@/assets/images/icons/play-button.svg'
+import { Skeleton, Tooltip } from '@mui/material'
 import HeartIcon from '@/assets/images/icons/heart-l-white.svg'
 import HeartLIcon from '@/assets/images/icons/heart.svg'
 import ShareIcon from '@/assets/images/icons/share-white.svg'
@@ -16,6 +15,7 @@ import { PlaylistsSection } from "@/components/playlistsSections"
 import Slider from "react-slick"
 import ArtistItem from "@/components/artistItem"
 import { useSelector } from "react-redux"
+import Link from "next/link"
 
 export default function ArtistPage() {
   const { user } = useSelector((r: any) => r.userReducer)
@@ -26,6 +26,7 @@ export default function ArtistPage() {
   const [loading, setLoading] = React.useState(false)
   const [followed, setFollowed] = React.useState(false)
   const [slice, setSlice] = React.useState(5)
+  const buttonUnfollowRef = React.useRef<any>(null)
   const { id } = useParams()
 
   const handleArtist = React.useCallback(async () => {
@@ -69,7 +70,7 @@ export default function ArtistPage() {
   }, [handleAlbums, handleArtist, handleFollowed, handleRelatedArtists, handleTopTracks])
 
   const handleFollowPlaylist = async () => {
-    await FollowArtist(id as string, 'artist', setLoading, setFollowed)
+    await FollowArtist(id as string, 'artist', setLoading, setFollowed, buttonUnfollowRef)
   }
 
   const handleUnfollowPlaylist = async () => {
@@ -107,23 +108,27 @@ export default function ArtistPage() {
                   <LoadingButton loading className="w-9 h-9 min-w-0" />
                   :
                   followed ?
-                    <button onClick={handleUnfollowPlaylist} className="w-9 h-9 drop-shadow-md">
-                      <Image src={HeartLIcon} alt="heart" className="w-full h-full drop-shadow-icon button-unfollow"/>
-                    </button>
+                    <Tooltip title={`Unfollow artist`} placement="top" arrow>
+                      <button onClick={handleUnfollowPlaylist} className="w-9 h-9 drop-shadow-md">
+                        <Image src={HeartLIcon} alt="heart" className="w-full h-full drop-shadow-icon" ref={buttonUnfollowRef}/>
+                      </button>
+                    </Tooltip>
                     :
-                    <button onClick={handleFollowPlaylist} className="w-9 h-9">
-                      <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
-                    </button>
+                    <Tooltip title={`Follow artist`} placement="top" arrow>
+                      <button onClick={handleFollowPlaylist} className="w-9 h-9">
+                        <Image src={HeartIcon} alt="heart" className="w-full h-full drop-shadow-icon" />
+                      </button>
+                    </Tooltip>
                 }
-
-
-                <button onClick={() => handleCopyShare(window.location.href)}>
-                  <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
-                </button>
+                <Tooltip title={`Share artist (copy link)`} placement="top" arrow>
+                  <button onClick={() => handleCopyShare(window.location.href)}>
+                    <Image src={ShareIcon} alt="share" className="drop-shadow-icon" />
+                  </button>
+                </Tooltip>
               </div>
             </div>
           </div>
-          <div className="px-5 mt-4">
+          <div className="px-5 mt-4" id="top10">
             <h3 className="font-bold text-24">Top 10</h3>
             <table className="text-left border-separate border-spacing-0 w-full mt-3" id="tableTopTracks">
               <thead>
@@ -143,9 +148,9 @@ export default function ArtistPage() {
             </table>
             <div className="mt-6">
               {slice <= 5 ?
-                <a onClick={() => setSlice(10)} className="font-medium text-gray-50 hover:text-decoration-line cursor-pointer" href="#tableTopTracks"><p >Show more</p></a>
+                <Link href="#top10" onClick={() => setSlice(10)} className="font-medium text-gray-50 hover:text-decoration-line cursor-pointer"><p >Show more</p></Link>
                 :
-                <a onClick={() => setSlice(5)} className="font-medium text-gray-50 hover:text-decoration-line cursor-pointer"><p >Show less</p></a>
+                <Link href="#top10" onClick={() => setSlice(5)} className="font-medium text-gray-50 hover:text-decoration-line cursor-pointer"><p >Show less</p></Link>
               }
             </div>
             <div className="mt-4">

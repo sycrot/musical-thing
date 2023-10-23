@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import XIcon from "@/assets/images/icons/x-notrounded.svg"
 import { handleCloseAnimate, handleImage } from "@/utils/main";
-import { Modal } from "@mui/material";
+import { Modal, Tooltip } from "@mui/material";
 import ButtonModal from "../buttonModal";
 import { useDispatch, useSelector } from "react-redux";
 import * as yup from 'yup'
@@ -57,9 +57,11 @@ export default function AddNewPlaylist(props: Props) {
       <form onSubmit={formik.handleSubmit}>
         <div className="bg-white rounded-xl p-5 w-full max-w-sm text-center animate-scale" ref={refCard}>
           <div className="text-center relative">
-            <button onClick={handleBack} className="absolute left-0 top-1">
-              <Image src={XIcon} alt="Close" className="mr-1" />
-            </button>
+            <Tooltip title={`Close`} placement="top" arrow>
+              <button onClick={handleBack} className="absolute left-0 top-1">
+                <Image src={XIcon} alt="Close" className="mr-1" />
+              </button>
+            </Tooltip>
             <h3 className="text-24 text-center font-bold">Create new playlist</h3>
           </div>
           <div className="relative flex justify-center mt-4">
@@ -91,7 +93,7 @@ export default function AddNewPlaylist(props: Props) {
           </div> */}
           <div className="flex mt-6 gap-3 justify-end">
             <ButtonModal text="Cancel" onClick={handleBack} />
-            <ButtonModal text="Create" color={`bg-green-50 text-white ${formik.values.name.length <= 0 && 'pointer-events-none'}`} type="submit" loading={loading}/>
+            <ButtonModal text="Create" color={`bg-green-50 text-white ${formik.values.name.length <= 0 && 'pointer-events-none'}`} type="submit" loading={loading} />
           </div>
         </div>
       </form>

@@ -88,9 +88,11 @@ export default function Sidebar() {
               }
 
             </Link>
-            <Link href={'/liked-tracks'}>
-              <Image src={HeartIcon} alt="Favorites" />
-            </Link>
+            <Tooltip title="Liked tracks" placement="top" arrow>
+              <Link href={'/liked-tracks'}>
+                <Image src={HeartIcon} alt="Favorites" />
+              </Link>
+            </Tooltip>
           </div>
         </div>
         <div className="rounded-t-xl bg-white pt-6 w-full mt-2">
@@ -122,7 +124,7 @@ export default function Sidebar() {
         <div className="rounded-b-xl bg-white w-full h-full flex-auto grow overflow-y-scroll pt-4">
           <div className="pl-2 grow h-4/5">
             {loading ?
-              Array(4).fill('skeleton').map((item, index) => (
+              Array(10).fill('skeleton').map((item, index) => (
                 <div key={index} className="flex w-full gap-2 items-center mt-2">
                   <Skeleton variant="rounded" sx={{ width: '62px' }} height={64} />
                   <div className="w-3/4">

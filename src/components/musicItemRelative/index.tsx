@@ -15,6 +15,7 @@ import MenuIcon from '@/assets/images/icons/menu-points.svg'
 import ModalAddToPlaylist from "../modalAddToPlaylist"
 import { useSelector } from "react-redux"
 import StreamLoader from "@/assets/images/icons/stream"
+import { Tooltip } from "@mui/material"
 
 interface Props {
   id: string
@@ -34,6 +35,7 @@ export default function MusicItemRelative(props: Props) {
   const [modalAddToPlaylists, setModalAddToPlaylist] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [liked, setLiked] = React.useState(false)
+  const buttonUnfollowRef = React.useRef<any>(null)
 
   React.useEffect(() => {
     const handleFollowedPlaylist = async () => {
@@ -63,7 +65,7 @@ export default function MusicItemRelative(props: Props) {
   ]
 
   const handleFollowTrack = async () => {
-    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked)
+    await handleFollow('me/tracks', props.id, 'songs', setLoading, setLiked, buttonUnfollowRef)
   }
 
   const handleUnfollowTrack = async () => {
@@ -90,9 +92,12 @@ export default function MusicItemRelative(props: Props) {
                 </div>
                 :
                 actions &&
-                <button className="w-full h-full absolute z-10 top-0 left-0 flex justify-center items-center" onClick={handleClickPlay}>
-                  <Image src={PlayIcon} alt="play" className="w-4 h-5" />
-                </button>
+                <Tooltip title={`Play track`} placement="top" arrow>
+                  <button className="w-full h-full absolute z-10 top-0 left-0 flex justify-center items-center hover:scale-105 active:scale-95" onClick={handleClickPlay}>
+                    <Image src={PlayIcon} alt="play" className="w-4 h-5" />
+                  </button>
+                </Tooltip>
+
               }
 
             </div>
@@ -114,13 +119,17 @@ export default function MusicItemRelative(props: Props) {
                     <LoadingButton loading className="w-6 h-6 min-w-0" />
                     :
                     liked ?
-                      <button className="w-6 h-6" onClick={handleUnfollowTrack}>
-                        <Image src={HeartLIcon} alt="Heart" className="w-full h-full button-unfollow" />
-                      </button>
+                      <Tooltip title={`Dislike track`} placement="top" arrow>
+                        <button className="w-6 h-6" onClick={handleUnfollowTrack}>
+                          <Image src={HeartLIcon} alt="Heart" className="w-full h-full" ref={buttonUnfollowRef} />
+                        </button>
+                      </Tooltip>
                       :
-                      <button className="w-6 h-6" onClick={handleFollowTrack}>
-                        <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
-                      </button>
+                      <Tooltip title={`Like track`} placement="top" arrow>
+                        <button className="w-6 h-6" onClick={handleFollowTrack}>
+                          <Image src={HeartIcon} alt="Heart" className="w-full h-full" />
+                        </button>
+                      </Tooltip>
                   }
                   <MenuDropdown items={menuItems} buttonStyle="grayscale w-6 h-6" menuItemsStyle="mt-10l -right-8" button={
                     <>

@@ -51,7 +51,7 @@ export default function Playlist() {
 
   React.useEffect(() => {
     handleTracks()
-  }, [handleTracks])
+  })
 
   const handleClickPlay = async (e: any) => {
     e.preventDefault()
@@ -97,7 +97,7 @@ export default function Playlist() {
                 </thead>
                 <tbody>
                   {tracks.map((item: any, key: any) => (
-                    <ItemMusic key={item.track.id} trackNumber={key + 1} id={item.track.id} name={item.track.name} uri={item.track.uri} image={item.track.album.images[0]?.url} artists={item.track.artists} album={item.track.album} duration_ms={item.track.duration_ms} typePlaylist="favorites" trackUri={item.track.uri} reload={true}/>
+                    <ItemMusic key={item.track.id} trackNumber={key + 1} id={item.track.id} name={item.track.name} uri={item.track.uri} image={item.track.album.images[0]?.url} artists={item.track.artists} album={item.track.album} duration_ms={item.track.duration_ms} typePlaylist="favorites" trackUri={item.track.uri} />
                   ))}
 
                 </tbody>

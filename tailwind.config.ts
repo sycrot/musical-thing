@@ -138,7 +138,7 @@ const config: Config = {
         scaleReverse: 'scaleReverse .2s ease-in-out',
         buttonPlaylist: 'buttonPlaylist .2s ease-in-out',
         slideText: 'slideText 7s infinite linear',
-        buttonFollow: 'buttonFollow .8s ease-in-out',
+        buttonFollow: 'buttonFollow .8s',
       },
       boxShadow: {
         'card-15': '1px 1px 6px rgba(0,0,0,.15)'
